@@ -1,0 +1,19 @@
+# requirements.txt
+# Contains all Python dependencies for the project
+
+# Core dependencies for RL
+stable-baselines3[extra]>=2.2.0
+sb3-contrib>=2.2.0
+
+# Dependencies for data processing and visualization
+numpy>=1.26.0
+matplotlib
+openpyxl
+
+# Dependencies for simulation/rendering (if needed)
+PyOpenGL
+PyOpenGL-accelerate
+opencv-python
+
+# Dependencies for the development environment
+ipykernel

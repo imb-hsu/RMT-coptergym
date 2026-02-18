@@ -1,7 +1,6 @@
-# RL-CopterBase
-Backup for RL-Testbed for differnet Copter Teststudies - Currently private Version for use at HSU --> aimed to be published
+# RMT-coptergym
 
-This repository serves as a research testbed for comparing drone control strategies, with a focus on Reinforcement Learning. The primary goal is to provide a modular framework for evaluating different RL controllers against classical, model-based approaches within a consistent simulation environment.
+This repository serves as a research testbed for comparing drone control strategies for x8 coaxial multicopters, with a focus on Reinforcement Learning. The primary goal is to provide a modular framework for evaluating different RL controllers against classical, model-based approaches within a consistent simulation environment.
 
 
 The project uses `stable-baselines3` for RL training, focusing on the PPO algorithm, while supporting `Box` and `MultiDiscrete` (for simple Action masking tasks with `MaskedPPO`) action spaces. The simulation is performed by running a MATLAB/Simulink model exported as a C-shared library (`.dll` for Windows, `.so` for Linux). This allows for fast and accurate physics simulation outside of the MATLAB environment. To use the internal MATLAB/Simulink simulation structsthe default C-header is conferted to a refernce of python classes.
@@ -150,3 +149,4 @@ or
 ```
 
 Then VS Code will automatically recognize your Conda environments.
+

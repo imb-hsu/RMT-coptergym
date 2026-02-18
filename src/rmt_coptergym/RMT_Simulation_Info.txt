@@ -1,0 +1,3 @@
+RMT Version: 	2025-12-04
+Update rate:	250Hz 
+Timesteps: 	0.004

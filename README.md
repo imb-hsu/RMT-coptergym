@@ -1,3 +1,7 @@
+```
+This is a development branch - its WIP to investigate a hierachical agent for teh control task
+```
+
 # RMT-coptergym
 
 This repository serves as a research testbed for comparing drone control strategies for x8 coaxial multicopters, with a focus on Reinforcement Learning. The primary goal is to provide a modular framework for evaluating different RL controllers against classical, model-based approaches within a consistent simulation environment.

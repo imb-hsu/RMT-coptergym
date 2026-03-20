@@ -4,6 +4,4 @@
 /old/*
 .vscode/settings.json
 .tmp.driveupload
-/pybullet-drones/gym-pybullet-drones
-todo-list.md
 *.pyc

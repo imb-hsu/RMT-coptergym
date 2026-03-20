@@ -272,7 +272,7 @@ def main():
     time_vector = np.linspace(0, SIM_DURATION, NUM_STEPS)
     
     # Resolve the project root directory relative to this script (assumed to be in 'scripts/')
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     output_root_dir = os.path.join(project_root, OUTPUT_BASE_DIR, 'anomalies')
 
     for config in DATASET_CONFIGS:

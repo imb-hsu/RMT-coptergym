@@ -42,18 +42,22 @@ DATASET_CONFIGS = [
     },
     {
         'name': 'Benchmark_Spiral',
-        'max_waypoints': 5, 'num_trajectories': 1,
+        'max_waypoints': 9, 'num_trajectories': 1,
         'params': [], # Nur eval_trajectory
         'eval_trajectory': [
             #{'time': i * 0.85,
             # 'pos': (3 * np.sin(i * np.pi / 3), 1.5 * np.sin(i * np.pi / 1.5), -10 + np.sin(i*np.pi/5)),             
             # 'vel': (0,0,0), 'rpy': (0,0,0), 'vel_limit': (5,5,5)
             #} for i in range(11)
-            {'pos': (0, 0, -15), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2)},
-            {'pos': (0.5, 0.5, -15.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
-            {'pos': (1, 0, -16), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
-            {'pos': (0.5, -0.5, -16.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
-            {'pos': (0, 0, -17), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 0.0, 'pos': (0, 0, -15), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2)},
+            {'time': 0.01, 'pos': (0.5, 0.5, -15.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 1.1, 'pos': (1.0, 0.0, -16.0), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 2.2, 'pos': (0.5, -0.5, -15.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 3.3, 'pos': (0, 0, -15.0), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 4.4, 'pos': (-0.5, 0.5, -14.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 5.5, 'pos': (-1.0, 0.0, -14.0), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 6.6, 'pos': (-0.5, -0.5, -14.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 7.7, 'pos': (0, 0, -15), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
         ]
     },
     {
@@ -258,7 +262,162 @@ DATASET_CONFIGS = [
              'vel_limit': (4,4,4), 'rpy': (0,0,0)}
             for i in range(24)
         ]
-    }
+    },
+    {
+        'name': 'Angular_Origin',
+        'max_waypoints': 42, 'num_trajectories': 500,
+        'params': [
+            {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (2,5)}, 'vel': {'initial': ((-1,1),(-1,1),(-1,1))}, 'rpy': {'initial': ((-60,60),(-60,60),(-180,180))}, 'thrust': {'initial': (430,1430)} },
+            {'time': {'target': 0.0}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'target': 930}},
+        ],
+        'eval_trajectory': [
+            {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (45,0,30), 'vel_limit': (2,2,2), 'thrust': 1200},
+            {'time': 0.0, 'rpy': (0,0,0), 'thrust': 930},
+        ]
+    },
+    {
+        'name': 'Angular_ConstantThrustChange',
+        'max_waypoints': 5, 'num_trajectories': 500,
+        'params': [
+            {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (2,5)}, 'vel': {'initial': ((-1,1),(-1,1),(-1,1))}, 'rpy': {'initial': ((-10,10),(-10,10),(-10,10)) }, 'thrust': {'initial': (880,980)} } ,
+            {'time': {'target': 0.0}, 'rpy':'hold', 'thrust': {'step': (-200,200)}},
+            {'time': {'step': (1,3)}, 'rpy':'hold', 'thrust': {'return': True}},
+            {'time': {'step': (1,3)}, 'rpy':'hold', 'thrust': {'step': (-200,200)}},
+            {'time': {'step': (1,3)}, 'rpy':'hold', 'thrust': {'return': True}},
+        ],
+        'eval_trajectory': [
+            {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (5,0,0), 'vel_limit': (2,2,2), 'thrust': 930},
+            {'time': 0.0, 'rpy': (5,0,0), 'thrust': 830 },
+            {'time': 2.5, 'rpy': (5,0,0), 'thrust': 930 },
+            {'time': 5.0, 'rpy': (5,0,0), 'thrust': 1030 },
+            {'time': 7.5, 'rpy': (5,0,0), 'thrust': 930 },
+        ]
+    },
+    {
+        'name': 'Angular_TempStep',
+        'max_waypoints': 4, 'num_trajectories': 500,
+        'params': [
+            {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (2,5)}, 'vel': {'initial': ((0,0),(0,0),(0,0))}, 'rpy': {'initial': ((0,40),(0,40),(10,30))}, 'thrust': {'initial': (900, 950)} },
+            {'time': {'target': 0.0}, 'rpy': {'target': ((-40, 0),(-40,0),(-30,-10))},'thrust':{'target': (-100,100)} },
+            {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': np.zeros(3)}, 'thrust':{'target': (-100,100)}},
+            {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': ((0,40),(0,40),(0,30))}, 'thrust':{'target': (-100,100)}},
+            {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'return': True}},
+        ],
+        'eval_trajectory': [
+            {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2), 'thrust': 930},
+            {'time': 0.0, 'rpy': (10,4,0), 'thrust': 950 },
+            {'time': 2.5, 'rpy': (5,5,5), 'thrust': 1000 },
+            {'time': 5.0, 'rpy': (20,20,0), 'thrust': 950 },
+            {'time': 7.5, 'rpy': (0,0,0), 'thrust': 930 },
+        ]
+    },
+    {
+        'name': 'Angular_StepSequence',
+        'max_waypoints': 7, 'num_trajectories': 500,
+        'params': [
+            {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (2,5)}, 'vel': {'initial': ((0,0),(0,0),(0,0))}, 'rpy': {'initial': ((0,0),(0,0),(0,0))}, 'thrust': {'initial': (900, 950)} },
+            {'time': {'target': 1.0}, 'rpy': {'target': ((-10,-5),(-1,1),(0,0))}, 'thrust': 930 },
+            {'time': {'target': 2.0}, 'rpy': {'target': ((-5,-1),(-2,2),(0,0))} , 'thrust': 930},
+            {'time': {'target': 3.0}, 'rpy': {'target': ((-1,1),(-5,5),(0,0))}, 'thrust': 930 },
+            {'time': {'target': 4.0}, 'rpy': {'target': ((1,5),(-2,2),(0,0))}, 'thrust': 930},
+            {'time': {'target': 5.0}, 'rpy': {'target': ((5,10),(-1,1),(0,0))}, 'thrust': 930 },
+            {'time': {'target': 6.0}, 'rpy': {'target': ((0,0),(0,0),(0,0))}, 'thrust': 930 },
+        ],
+        'eval_trajectory': [
+            {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2), 'thrust': 930},
+            {'time': 1.0, 'rpy': (-6,-0.5,0), 'thrust': 930 },
+            {'time': 2.0, 'rpy': (-5,-1.5,0), 'thrust': 930 },
+            {'time': 3.0, 'rpy': (0.5,5,0), 'thrust': 930 },
+            {'time': 4.0, 'rpy': (2,-1,0), 'thrust': 930 },
+            {'time': 5.0, 'rpy': (9,-0.5,0), 'thrust': 930 },
+            {'time': 6.0, 'rpy': (0,0,0), 'thrust': 930 },
+        ]
+    },
+    {
+        'name': 'Angular_Dynamic_Steady',
+        'max_waypoints': 42, 'num_trajectories': 500,
+        'params': [
+            {'pos':  {'initial': ((-5,5),(-5,5),(-35,-15))}, 'vel': {'initial': (0,0,0)}, 'rpy': {'initial':((0,0),(0,0),(0,0))}, 'vel_limit': {'initial': (2,5)}, 'thrust': {'initial': (800,900)} }
+        ] + [
+            {'time': {'step': (0.175, 0.225)}, 'rpy': {'step': (0.25, 0.75)}, 'thrust': {'step':(1,10)} }
+            for i in range(41)
+        ],
+        'eval_trajectory': [
+            {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2), 'thrust': 880},
+        ] + [
+            d
+            for i in range(41)
+                for d in [
+                    {'time': 0.2*(i+1), 'rpy': (0, 0.45*(i+1), 0.1*(i+1)), 'thrust': 930+5*(i+1)},
+                ]
+        ]
+    },
+    {
+        'name': 'Angular_Dynamic_StopGo',
+        'max_waypoints': 26, 'num_trajectories': 500,
+        'params': [
+            {'pos':  {'initial': ((-5,5),(-5,5),(-35,-15))},'vel': {'initial': ((0,0),(0,0),(0,0))}, 'rpy': {'initial': ((-15,15),(-15,15),(-15,15))}, 'vel_limit': {'initial': (2,5)}, 'thrust': {'initial': (900, 950)} },
+            {'time': {'target': 0.0}, 'rpy': {'target': np.zeros(3)}, 'thrust': 930},
+            {'time': {'target': 1.5}, 'rpy': {'target': np.zeros(3)}, 'thrust': 930}
+        ] + [
+            {'time': {'step': (0.2, 0.3)}, 'rpy': {'step': (2, 7)}, 'thrust':{'step': (5,10)} }
+            for i in range(10)
+            
+        ] + [
+            {'time': {'target': 4.5}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'return': True}},
+            {'time': {'target': 5.0}, 'rpy': {'target': np.zeros(3)}}
+        ] + [
+            {'time': {'step': (0.3, 0.4)}, 'rpy': {'step': (2, 7)} , 'thrust':{'step': (5,10)}}
+            for i in range(10)
+        ] + [
+            {'time': {'target': 9.0}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'return': True}}
+        ],
+        'eval_trajectory': [
+            {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (10,-10,15), 'vel_limit': (2,2,2), 'thrust': 930},
+            {'time': 0.0, 'rpy': (0,0,0), 'thrust': 930},
+            {'time': 1.5, 'rpy': (0,0,0), 'thrust': 930},
+        ]+ [
+            d
+            for i in range(10)
+                for d in [
+                    {'time': 1.5+ 0.25*(i+1), 'rpy': (3*(i+1),0,0), 'thrust': 930-5*(i+1)},
+                ]
+        ] + [
+            {'time': 4.5, 'rpy': (0,0,0), 'thrust': 930},
+            {'time': 5.0, 'rpy': (0,0,0), 'thrust': 930},
+        ]+ [
+            d
+            for i in range(10)
+                for d in [
+                    {'time': 2+ 0.35*(i+1), 'rpy': (2+1*(i+1),0,0), 'thrust': 930+5*(i+1)},
+                ]
+        ]
+    },
+    {
+        'name': 'Angular_Dynamic_Chatter',
+        'max_waypoints': 10, 'num_trajectories': 500,
+        'params': [
+            {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (5,10)}, 'vel': {'initial': ((0,0),(0,0),(0,0))}, 'rpy': {'initial': ((0,0),(-0,0),(0,0))}, 'thrust': {'initial': (900, 950)} },
+        ]+ [
+            d
+            for _ in range(9)
+                for d in [
+                    {'time': {'step': (0.4, 0.6)}, 'rpy': {'target': ((5,15),(5,15),(5,15))}, 'thrust': {'target':(950, 1200)}},
+                    {'time': {'step': (0.4, 0.6)}, 'rpy': {'target': ((-15,-5),(-15,-5),(-15,-5))}, 'thrust': {'target':(660, 910)}}
+                ]
+        ],
+
+        'eval_trajectory': [
+            {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2), 'thrust': 930},
+        ]+ [
+            d
+            for i in range(9)
+                for d in [
+                    {'time': (1*i)+0.5*(i+1), 'rpy': (10,10,10), 'thrust': 1000},
+                    {'time': 0.5+(1*i)+0.5*(i+1), 'rpy': (-10,-10,-10), 'thrust': 860},
+                ]
+        ]
+    },
 ]
 
 # --- 3. HELFERFUNKTIONEN ---
@@ -452,7 +611,7 @@ def main():
         
         print(f"\n--- Generating dataset: {name} ({num_traj} trajectories) ---")
         # Assumes this script is in a 'scripts' folder at the project root.
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         dataset_dir = os.path.join(project_root, 'data', 'trajectories', name)
         os.makedirs(dataset_dir, exist_ok=True)
         

@@ -151,6 +151,8 @@ class RMT_Base(gym.Env, ABC):
         
         # --- Simulation Constraints --- 
 
+        self.thrust_hover = 823
+
         self.limits.motor.min   = check_thrust['limits'][0]
         self.limits.motor.max   = check_thrust['limits'][1]
         self.limits.motor.range = self.limits.motor.max - self.limits.motor.min
@@ -160,7 +162,7 @@ class RMT_Base(gym.Env, ABC):
         self.initial_state.agent.rpy_rad    = np.deg2rad(self.initial_state.agent.rpy_deg )
         self.initial_state.agent.vel_b      = initial['vxyz']
         self.initial_state.agent.omega      = np.array([0.0,0.0,0.0])
-        self.initial_state.cmd              = 823 * np.ones(8) # Default hover thrust
+        self.initial_state.cmd              = self.thrust_hover * np.ones(8) # Default hover thrust
 
         self.limits.agent.pos               = check_pos['limits']
         self.limits.agent.velocity          = check_vel['limits'] 
@@ -746,6 +748,7 @@ class RMT_Base(gym.Env, ABC):
             'error_pos': self._normalize_vector(self.error.pos, self.norm_pos_min, self.norm_pos_max), # IDEE für SPÄTER np.array([-10,-10,-10]), np.array([10,10,10])),
             'error_vel': self._normalize_vector(self.error.vel_c, self.norm_vel_min, self.norm_vel_max),
             'error_rpy': self._normalize_vector(self.error.rpy_rad, np.deg2rad(np.array([-20,-20,-20])), np.deg2rad(np.array([20,20,20]))), #self.norm_rad_min/2, self.norm_rad_max/2),
+            'error_omega_z': self._normalize_vector(self.error.yaw_rate, self.limits.omega.min[2] , self.limits.omega.max[2] ),
         }
 
     def _normalize_vector(self, value, min_val, max_val, target_min=-1.0, target_max=1.0):
@@ -912,7 +915,18 @@ class RMT_Base(gym.Env, ABC):
         self._update_normalized_dictionary()
 
         # Calculate the ideal velocity command based on the mission.
-        self._calculate_command_velocity()
+        if 'vel' in self.mission.goal or 'pos' in self.mission.goal:
+            self._calculate_command_velocity()
+        elif 'rpy' in self.mission.goal:
+            self._calculate_command_yaw_rate()
+        else:
+            available_keys = list(self.mission.goal.keys())
+            error_msg = (
+                f"CRITICAL ERROR: Unknown or invalid goal defined in mission! "
+                f"Expected 'pos', 'vel', or 'rpy', but got: {available_keys}. "
+                f"Check your dataset or mission generator."
+            )
+            raise ValueError(error_msg)
 
         # --- Update Target and Error based on final command ---
         # Set the official target velocity to the one calculated by the controller.
@@ -1047,7 +1061,7 @@ class RMT_Base(gym.Env, ABC):
         self.target.rpy_rad = np.deg2rad(self.target.rpy_deg) if not np.any(np.isnan(self.target.rpy_deg)) else nan_3d
         self.target.vel_c   = self.mission.goal.get('vel', nan_3d)
         # Add thrust/cmd target. If not present, it's NaN.
-        self.target.cmd     = np.full(8, self.mission.goal.get('thrust', np.nan))
+        self.target.cmd     = self.mission.goal.get('thrust', np.nan)
 
     def _calculate_command_velocity(self) -> None:
         """
@@ -1082,6 +1096,35 @@ class RMT_Base(gym.Env, ABC):
         # --- 5. Store the final calculated command in the dedicated namespace ---
         # This is the authoritative command for this timestep.
         self.command_vel = final_vel
+
+    def _calculate_command_yaw_rate(self) -> None:
+        """
+        Calculates the desired yaw rate (omega z) based on the target yaw angle.
+        Acts as a classical P-controller to bridge absolute angles to rates.
+        """
+        # Wenn kein gültiges Yaw-Target existiert, setzen wir die Ziel-Rate auf 0 (Dämpfung)
+        if 'rpy' not in self.mission.goal or np.isnan(self.target.rpy_rad[2]):
+            self.command_yaw_rate = 0.0
+            return
+
+        # 1. Shortest Path Error berechnen (Winkel auf [-pi, pi] normieren)
+        # current.rpy_rad[2] ist das aktuelle Yaw der Drohne
+        yaw_error = self.target.rpy_rad[2] - self.current.rpy_rad[2]
+        yaw_error = (yaw_error + np.pi) % (2 * np.pi) - np.pi
+
+        # 2. P-Regler anwenden
+        p_gain_yaw = 3.0 # Tuning-Parameter: Wie aggressiv soll sie sich drehen?
+        desired_yaw_rate = p_gain_yaw * yaw_error
+
+        # 3. Limitieren auf die maximal erlaubte Rotationsrate (aus deinen Limits)
+        # Angenommen self.limits.omega.max[2] hält den max. Wert in rad/s
+        max_yaw_rate = self.limits.omega.max[2] 
+        self.command_yaw_rate = np.clip(desired_yaw_rate, -max_yaw_rate, max_yaw_rate)
+
+        # 4. In das normalized_dict eintragen (damit es für Obs/Reward/Integral bereitsteht)
+        # Omega Z Fehler = (Soll-Rate) - (Ist-Rate)
+        self.error.yaw_rate = self.command_yaw_rate - self.current.omega[2]
+        
 
     @abstractmethod
     def _update_task_specifics(self) -> None:

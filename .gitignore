@@ -1,9 +1,18 @@
+#Python Cleanup
 __pycache__/
 *.pyc
+*.egg-info/
+
+#Dont Commit actual Data
 /saves/*
 /logs/*
 /data/*
+
+#Used for dummy data, dont track
 /old/*
+/test/*
+
+#Misc
 .vscode/settings.json
 .tmp.driveupload
 todo-list.md

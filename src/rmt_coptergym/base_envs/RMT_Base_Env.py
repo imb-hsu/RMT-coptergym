@@ -336,6 +336,8 @@ class RMT_Base(gym.Env, ABC):
         self.error.rpy_rad   = np.zeros(3, dtype=np.float64)
         self.error.rpy_deg   = np.zeros(3, dtype=np.float64)
         self.error.omega     = np.zeros(3, dtype=np.float64)
+        #for omega_z 
+        self.error.yaw_rate     = np.zeros(1, dtype=np.float64)
 
         # Commanded state
         self.command_vel = np.zeros(3, dtype=np.float64)
@@ -748,7 +750,7 @@ class RMT_Base(gym.Env, ABC):
             'error_pos': self._normalize_vector(self.error.pos, self.norm_pos_min, self.norm_pos_max), # IDEE für SPÄTER np.array([-10,-10,-10]), np.array([10,10,10])),
             'error_vel': self._normalize_vector(self.error.vel_c, self.norm_vel_min, self.norm_vel_max),
             'error_rpy': self._normalize_vector(self.error.rpy_rad, np.deg2rad(np.array([-20,-20,-20])), np.deg2rad(np.array([20,20,20]))), #self.norm_rad_min/2, self.norm_rad_max/2),
-            'error_omega_z': self._normalize_vector(self.error.yaw_rate, self.limits.omega.min[2] , self.limits.omega.max[2] ),
+            'error_omega_z': self._normalize_vector(self.error.yaw_rate, self.norm_omega_min[2] , self.norm_omega_max[2] ),
         }
 
     def _normalize_vector(self, value, min_val, max_val, target_min=-1.0, target_max=1.0):
@@ -1102,28 +1104,25 @@ class RMT_Base(gym.Env, ABC):
         Calculates the desired yaw rate (omega z) based on the target yaw angle.
         Acts as a classical P-controller to bridge absolute angles to rates.
         """
-        # Wenn kein gültiges Yaw-Target existiert, setzen wir die Ziel-Rate auf 0 (Dämpfung)
+        # If no target yaw-rate to zero
         if 'rpy' not in self.mission.goal or np.isnan(self.target.rpy_rad[2]):
             self.command_yaw_rate = 0.0
             return
 
-        # 1. Shortest Path Error berechnen (Winkel auf [-pi, pi] normieren)
-        # current.rpy_rad[2] ist das aktuelle Yaw der Drohne
-        yaw_error = self.target.rpy_rad[2] - self.current.rpy_rad[2]
+        # calculate error between target and agent, normalized betwen -pi and pi to cancel issue by rotating over +/-180°
+        yaw_error = self.target.rpy_rad[2] - self.agent.rpy_rad[2]
         yaw_error = (yaw_error + np.pi) % (2 * np.pi) - np.pi
 
-        # 2. P-Regler anwenden
-        p_gain_yaw = 3.0 # Tuning-Parameter: Wie aggressiv soll sie sich drehen?
+        # p-controller
+        p_gain_yaw = 3.0 
         desired_yaw_rate = p_gain_yaw * yaw_error
 
-        # 3. Limitieren auf die maximal erlaubte Rotationsrate (aus deinen Limits)
-        # Angenommen self.limits.omega.max[2] hält den max. Wert in rad/s
-        max_yaw_rate = self.limits.omega.max[2] 
+        # limits and clips
+        max_yaw_rate = self.limits.agent.omega[1][2] 
         self.command_yaw_rate = np.clip(desired_yaw_rate, -max_yaw_rate, max_yaw_rate)
 
-        # 4. In das normalized_dict eintragen (damit es für Obs/Reward/Integral bereitsteht)
-        # Omega Z Fehler = (Soll-Rate) - (Ist-Rate)
-        self.error.yaw_rate = self.command_yaw_rate - self.current.omega[2]
+        # updating the error.yaw.rate
+        self.error.yaw_rate = self.command_yaw_rate - self.agent.omega[2]
         
 
     @abstractmethod

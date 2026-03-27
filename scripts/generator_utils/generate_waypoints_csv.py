@@ -265,10 +265,10 @@ DATASET_CONFIGS = [
     },
     {
         'name': 'Angular_Origin',
-        'max_waypoints': 42, 'num_trajectories': 500,
+        'max_waypoints': 2, 'num_trajectories': 500,
         'params': [
             {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (2,5)}, 'vel': {'initial': ((-1,1),(-1,1),(-1,1))}, 'rpy': {'initial': ((-60,60),(-60,60),(-180,180))}, 'thrust': {'initial': (430,1430)} },
-            {'time': {'target': 0.0}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'target': 930}},
+            {'time': {'target': 0.0}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'target': (900,950)}},
         ],
         'eval_trajectory': [
             {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (45,0,30), 'vel_limit': (2,2,2), 'thrust': 1200},
@@ -298,9 +298,9 @@ DATASET_CONFIGS = [
         'max_waypoints': 4, 'num_trajectories': 500,
         'params': [
             {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (2,5)}, 'vel': {'initial': ((0,0),(0,0),(0,0))}, 'rpy': {'initial': ((0,40),(0,40),(10,30))}, 'thrust': {'initial': (900, 950)} },
-            {'time': {'target': 0.0}, 'rpy': {'target': ((-40, 0),(-40,0),(-30,-10))},'thrust':{'target': (-100,100)} },
-            {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': np.zeros(3)}, 'thrust':{'target': (-100,100)}},
-            {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': ((0,40),(0,40),(0,30))}, 'thrust':{'target': (-100,100)}},
+            {'time': {'target': 0.0}, 'rpy': {'target': ((-40, 0),(-40,0),(-30,-10))},'thrust':{'step': (-100,100)} },
+            {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': np.zeros(3)}, 'thrust':{'step': (-100,100)}},
+            {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': ((0,40),(0,40),(0,30))}, 'thrust':{'step': (-100,100)}},
             {'time': {'step': (1.5, 3.0)}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'return': True}},
         ],
         'eval_trajectory': [
@@ -316,12 +316,12 @@ DATASET_CONFIGS = [
         'max_waypoints': 7, 'num_trajectories': 500,
         'params': [
             {'pos': {'initial': ((-5,5),(-5,5),(-25,-10))},'vel_limit': {'initial': (2,5)}, 'vel': {'initial': ((0,0),(0,0),(0,0))}, 'rpy': {'initial': ((0,0),(0,0),(0,0))}, 'thrust': {'initial': (900, 950)} },
-            {'time': {'target': 1.0}, 'rpy': {'target': ((-10,-5),(-1,1),(0,0))}, 'thrust': 930 },
-            {'time': {'target': 2.0}, 'rpy': {'target': ((-5,-1),(-2,2),(0,0))} , 'thrust': 930},
-            {'time': {'target': 3.0}, 'rpy': {'target': ((-1,1),(-5,5),(0,0))}, 'thrust': 930 },
-            {'time': {'target': 4.0}, 'rpy': {'target': ((1,5),(-2,2),(0,0))}, 'thrust': 930},
-            {'time': {'target': 5.0}, 'rpy': {'target': ((5,10),(-1,1),(0,0))}, 'thrust': 930 },
-            {'time': {'target': 6.0}, 'rpy': {'target': ((0,0),(0,0),(0,0))}, 'thrust': 930 },
+            {'time': {'target': 1.0}, 'rpy': {'target': ((-10,-5),(-1,1),(0,0))}, 'thrust': (900, 950) },
+            {'time': {'target': 2.0}, 'rpy': {'target': ((-5,-1),(-2,2),(0,0))} , 'target': (900,950) },
+            {'time': {'target': 3.0}, 'rpy': {'target': ((-1,1),(-5,5),(0,0))}, 'target': (900,950)  },
+            {'time': {'target': 4.0}, 'rpy': {'target': ((1,5),(-2,2),(0,0))}, 'target': (900,950) },
+            {'time': {'target': 5.0}, 'rpy': {'target': ((5,10),(-1,1),(0,0))}, 'target': (900,950)  },
+            {'time': {'target': 6.0}, 'rpy': {'target': ((0,0),(0,0),(0,0))}, 'target': (900,950) },
         ],
         'eval_trajectory': [
             {'time': 0.0, 'pos': (0,0,-10), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2), 'thrust': 930},
@@ -357,15 +357,15 @@ DATASET_CONFIGS = [
         'max_waypoints': 26, 'num_trajectories': 500,
         'params': [
             {'pos':  {'initial': ((-5,5),(-5,5),(-35,-15))},'vel': {'initial': ((0,0),(0,0),(0,0))}, 'rpy': {'initial': ((-15,15),(-15,15),(-15,15))}, 'vel_limit': {'initial': (2,5)}, 'thrust': {'initial': (900, 950)} },
-            {'time': {'target': 0.0}, 'rpy': {'target': np.zeros(3)}, 'thrust': 930},
-            {'time': {'target': 1.5}, 'rpy': {'target': np.zeros(3)}, 'thrust': 930}
+            {'time': {'target': 0.0}, 'rpy': {'target': np.zeros(3)}, 'target': (900,950) },
+            {'time': {'target': 1.5}, 'rpy': {'target': np.zeros(3)}, 'target': (900,950) }
         ] + [
             {'time': {'step': (0.2, 0.3)}, 'rpy': {'step': (2, 7)}, 'thrust':{'step': (5,10)} }
             for i in range(10)
             
         ] + [
             {'time': {'target': 4.5}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'return': True}},
-            {'time': {'target': 5.0}, 'rpy': {'target': np.zeros(3)}}
+            {'time': {'target': 5.0}, 'rpy': {'target': np.zeros(3)}, 'thrust': {'return': True}}
         ] + [
             {'time': {'step': (0.3, 0.4)}, 'rpy': {'step': (2, 7)} , 'thrust':{'step': (5,10)}}
             for i in range(10)

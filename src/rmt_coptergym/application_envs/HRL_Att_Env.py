@@ -269,13 +269,13 @@ class HRL_Att_Env(RMT_RL_Env):
             base_reward = float(weighted_sum / total_weight)
 
         # Der Safety-Veto Term wirkt immer multiplikativ als "harter Constraint"
-        final_reward = base_reward * (r_safety_veto ** weights.get('comfort_zone', 1.0))
+        final_reward = base_reward * (r_safety_veto ** weights.get('safety_zone', 1.0))
 
         # --- 3. LOGGING (Dein Stil) ---
         for val, w, key, error in comp_data:
             self.reward.terms[key] = {'w': w, 'r': val, 'error': error}
         
-        self.reward.terms['safety_veto'] = {'w': weights.get('comfort_zone', 1.0), 'r': r_safety_veto}
+        self.reward.terms['safety_veto'] = {'w': weights.get('safety_zone', 1.0), 'r': r_safety_veto}
         self.reward.base = final_reward
         
         return final_reward
@@ -341,7 +341,7 @@ class HRL_Att_Env(RMT_RL_Env):
         MIN_REWARD_AT_EDGE = 0.3 
         xp = [self.limits.motor.min, lower_bound, upper_bound, self.limits.motor.max]
         fp = [MIN_REWARD_AT_EDGE, 1.0, 1.0, MIN_REWARD_AT_EDGE]
-        comfort_zone_reward = np.interp(min(self.action.cmd), xp, fp )
+        safety_zone_reward = np.interp(min(self.action.cmd), xp, fp )
 
         # Smoothness
         action_delta = self.action.box 
@@ -409,7 +409,7 @@ class HRL_Att_Env(RMT_RL_Env):
                 base_reward = 0.0
             
             # Comfort Zone bleibt ein harter Multiplikator (Veto-Recht)
-            base_reward *= (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
+            base_reward *= (safety_zone_reward ** weights.get('safety_zone', 1.0))
         
         elif self.reward_type == "additive":
             # Additiv ist einfacher, aber hier auch mit dynamischen Gewichten aktualisieren
@@ -432,7 +432,7 @@ class HRL_Att_Env(RMT_RL_Env):
             else:
                 base_reward = 0.0
             
-            base_reward *= (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
+            base_reward *= (safety_zone_reward ** weights.get('safety_zone', 1.0))
         
         # Log the components for analysis
         self.reward.terms['integral']           = {'w': w_int,           'r': integral_reward, 'error': self.integral_error_norm}
@@ -441,7 +441,7 @@ class HRL_Att_Env(RMT_RL_Env):
         self.reward.terms['yaw']                = {'w': w_yaw,                'r': yaw_reward, 'error': self.normalized_dict['error_rpy'][2]}
         self.reward.terms['omega']              = {'w': w_omega,              'r': omega_reward, 'error': self.normalized_dict['omega']}
         self.reward.terms['accel']              = {'w': w_accel,              'r': accel_reward, 'error': self.normalized_dict['accel']}
-        self.reward.terms['comfort_zone']       = {'w': weights.get('comfort_zone', 1.0),       'r': comfort_zone_reward, 'error': (np.abs(self.limits.motor.range/2)-self.action.cmd)}
+        self.reward.terms['safety_zone']        = {'w': weights.get('safety_zone', 1.0),       'r': safety_zone_reward, 'error': (np.abs(self.limits.motor.range/2)-self.action.cmd)}
         self.reward.terms['paired_efficiency']  = {'w': w_paired,  'r': paired_efficiency_reward, 'error': pair_error}
         self.reward.terms['balance']            = {'w': w_balance,            'r': balance_reward, 'error': balance_error}
         self.reward.terms['smoothness']         = {'w': w_smooth,         'r': smoothness_reward, 'error': smoothness_error}

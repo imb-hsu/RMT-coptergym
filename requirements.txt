@@ -4,6 +4,7 @@
 # Core dependencies for RL
 stable-baselines3[extra]>=2.2.0
 sb3-contrib>=2.2.0
+torch
 
 # Dependencies for data processing and visualization
 numpy>=1.26.0

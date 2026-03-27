@@ -67,6 +67,7 @@ class TrajectoryDataLoader:
             script_dir = os.path.dirname(__file__)
             # Go up from the script folder until we are in the project root
             project_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir))) # RL-CopterBase
+            print('Trajectory loaded from:', project_root)
             return os.path.join(project_root, 'data', subfolder)
         except NameError:
             # Fallback for interactive environments
@@ -213,7 +214,7 @@ class TrajectoryDataLoader:
                     df_train['mission_name'] = dataset_name
                     train_pool.append(df_train)
                 
-        if not train_pool:
+        if not train_pool and not load_eval_only:
             logging.warning("Train Pool is empty.")
         if not eval_pool: 
             logging.warning("Eval Pool is empty.")

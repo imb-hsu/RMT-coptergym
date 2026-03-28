@@ -42,18 +42,22 @@ DATASET_CONFIGS = [
     },
     {
         'name': 'Benchmark_Spiral',
-        'max_waypoints': 5, 'num_trajectories': 1,
+        'max_waypoints': 9, 'num_trajectories': 1,
         'params': [], # Nur eval_trajectory
         'eval_trajectory': [
             #{'time': i * 0.85,
             # 'pos': (3 * np.sin(i * np.pi / 3), 1.5 * np.sin(i * np.pi / 1.5), -10 + np.sin(i*np.pi/5)),             
             # 'vel': (0,0,0), 'rpy': (0,0,0), 'vel_limit': (5,5,5)
             #} for i in range(11)
-            {'pos': (0, 0, -15), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2)},
-            {'pos': (0.5, 0.5, -15.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
-            {'pos': (1, 0, -16), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
-            {'pos': (0.5, -0.5, -16.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
-            {'pos': (0, 0, -17), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 0.0, 'pos': (0, 0, -15), 'vel': (0, 0, 0), 'rpy': (0,0,0), 'vel_limit': (2,2,2)},
+            {'time': 0.01, 'pos': (0.5, 0.5, -15.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 1.1, 'pos': (1.0, 0.0, -16.0), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 2.2, 'pos': (0.5, -0.5, -15.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 3.3, 'pos': (0, 0, -15.0), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 4.4, 'pos': (-0.5, 0.5, -14.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 5.5, 'pos': (-1.0, 0.0, -14.0), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 6.6, 'pos': (-0.5, -0.5, -14.5), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
+            {'time': 7.7, 'pos': (0, 0, -15), 'vel': (0, 0, 0), 'rpy': (0,0,0)},
         ]
     },
     {
@@ -452,7 +456,7 @@ def main():
         
         print(f"\n--- Generating dataset: {name} ({num_traj} trajectories) ---")
         # Assumes this script is in a 'scripts' folder at the project root.
-        project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         dataset_dir = os.path.join(project_root, 'data', 'trajectories', name)
         os.makedirs(dataset_dir, exist_ok=True)
         

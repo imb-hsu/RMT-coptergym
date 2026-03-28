@@ -1,4 +1,17 @@
-# Ganz oben im Skript
+"""
+SUMMARY: Adaptive Reinforcement Learning for Multicopter Velocity Control
+This script implements a Curriculum Learning (CL) pipeline using Proximal Policy Optimization (PPO) 
+ to train a robust velocity controller for a multicopter (X8 configuration). 
+The training is structured in stages to progressively handle complex flight dynamics and 
+actuator anomalies (Loss of Effectiveness, Dropouts). 
+
+Key features:
+1. Multi-stage Curriculum: From hover stabilization to high-speed dynamic missions.
+2. Robustness Training: Controlled injection of actuator faults during training.
+3. Automated Evaluation: Post-training deterministic benchmarking against baseline 
+   scenarios and representative anomaly cases.
+"""
+
 import os
 import torch
 
@@ -173,7 +186,7 @@ def run_rl_evaluation(model_path: str, eval_pool: list[pd.DataFrame], anomaly_po
     # Wir sortieren nach Namen, damit '01', '02' immer gleich zugeordnet sind
     for idx, (anom_name, anom_df) in enumerate(sorted(representative_anomalies.items())):
         
-        # Ordnername bereinigen (z.B. "01_dropout_failure_single")
+        # Ordnername bereinigen (z.B. "01_Intermittent_Actuator_Dropout")
         safe_name = "".join([c for c in anom_name if c.isalnum() or c in (' ', '_', '-')]).strip()
         folder_name = f"{idx+1:02d}_{safe_name}"
         
@@ -394,12 +407,9 @@ def main():
                 },
                 "anomaly_chance": 0.4, 
                 "anomaly_config": {
-                    'static_failure': 1.0, 
-                    
-                    # NEU: Das "Gewürz" für Transient Response
-                    # Lernt: "Fehler können kommen und gehen"
-                    'dropout_failure_single': 0.2, 
-                    'sudden_failure_single': 0.2
+                    'permanent_LoE': 1.0, 
+                    'Intermittent_Actuator_Dropout': 0.2, 
+                    'abrupt_LoE': 0.2
                 },
                 "timesteps": training_steps, # Volle Länge (Fundament!)
                 "env_kwargs": {
@@ -427,10 +437,10 @@ def main():
                 },
                 "anomaly_chance": 0.6, 
                 "anomaly_config": {
-                    'static_failure': 1.0,
-                    'sudden_failure_single': 0.8, 
-                    'degradation_failure': 0.5,  
-                    'dropout_failure_single': 1.0
+                    'permanent_LoE': 1.0,
+                    'abrupt_LoE': 0.8, 
+                    'gradual_LoE': 0.5,  
+                    'Intermittent_Actuator_Dropout': 1.0
                 },
                 "timesteps": training_steps,
                 "env_kwargs": {
@@ -455,12 +465,12 @@ def main():
                 },
                 "anomaly_chance": 0.8, 
                 "anomaly_config": {
-                    'static_failure': 0.5,
-                    'sudden_failure_single': 0.75,
-                    'sudden_failure_multi': 0.75,
-                    'dropout_failure_single': 0.5,  
-                    'dropout_failure_multi': 0.75,
-                    'degradation_failure': 1.0
+                    'permanent_LoE': 0.5,
+                    'abrupt_LoE': 0.75,
+                    'abrupt_LoE_multi': 0.75,
+                    'Intermittent_Actuator_Dropout': 0.5,  
+                    'Intermittent_Actuator_Dropout_multi': 0.75,
+                    'gradual_LoE': 1.0
                 },
                 # HIER DEIN WUNSCH: Doppelte Zeit für das Feintuning
                 "timesteps": int(training_steps * 2.0), 
@@ -501,10 +511,6 @@ def main():
                 "paired_efficiency": 0.5,
                 "balance": 0.5,
                 "smoothness": 0.05, 
-
-
-                
-                
 
                 # --- HARD CONSTRAINTS ---
                 "comfort_zone": 1.0
@@ -562,7 +568,7 @@ def main():
     
     # Lade alle verfügbaren Missionen für die Evaluation
     all_available_eval_missions = loader.available_datasets
-    eval_missions_config = {name: 1.0 for name in all_available_eval_missions}
+    eval_missions_config = {'Benchmark_Ministep': 1.0, 'Benchmark_Response': 1.0, 'Benchmark_Spiral': 1.0, 'Benchmark_Stabilize': 1.0} #{name: 1.0 for name in all_available_eval_missions}
     
     _, eval_mission_pool = loader.create_pools(eval_missions_config, load_eval_only=True)
     

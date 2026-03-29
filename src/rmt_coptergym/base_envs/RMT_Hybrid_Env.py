@@ -1,12 +1,9 @@
-import gymnasium as gym
-from gymnasium import spaces
 import numpy as np
-from abc import ABC, abstractmethod
-from types import SimpleNamespace
- 
+from gymnasium import spaces
+
 from rmt_coptergym.base_envs.RMT_Base_Env import RMT_Base
 
-class RMT_RL_Env(RMT_Base, ABC):
+class RMT_Hybrid_Env(RMT_Base):
     """
     A base class for Reinforcement Learning Copter Environments.
     It inherits from RMT_Base to manage the simulation and provides a rich set of
@@ -15,8 +12,10 @@ class RMT_RL_Env(RMT_Base, ABC):
 
     This class introduces the RL-specific logic, such as observation/action
     spaces, reward calculation, and episode termination, which are implemented
-    by concrete agent environments inheriting from this class.
+    by concrete agent environments inheriting from this class. Which also merges
+    teh ahndling of teh INDI CTRL_Env
     """
+
     metadata = {
         "reward_types": ["multiplicative", "additive", "progress", "distance", "goalregion"],
         "action_space_types": ["Box", "MDisc"],
@@ -37,10 +36,18 @@ class RMT_RL_Env(RMT_Base, ABC):
                  reward_failure_penalty: float = -10.0, #
                  anomaly_knowledge: bool = False,
                  **kwargs):
-        """
+"""
         Initializes the RL Base Environment.
         It passes all configuration arguments to the underlying RMT_Base simulation.
         """
+
+        # --- IMPORTANT ---
+        # Force the use of the internal Flight Control System (FCS).
+        # This is the key difference from the RL environments.
+        kwargs['use_fcs'] = True
+        self.delta_cmd_vel = np.array([0,0,0])
+        self.delta_cmd_rpy = np.array([0,0,0])
+
         # Initialize the simulation base class with all provided arguments.
         # This calls the child's build_action_space and build_observation_space.
 
@@ -82,6 +89,35 @@ class RMT_RL_Env(RMT_Base, ABC):
         self.reward = SimpleNamespace()
         self._reset_reward_terms()
 
+    #MOST IMPORTANT PART INDI HANDLING HERE:
+
+    def _update_task_specifics(self) -> None:
+        """
+        (Implements RMT_Base._update_task_specifics)
+        This is where the benchmark logic happens. We calculate the desired
+        velocity based on the position error to the current target, with
+        dynamic damping to prevent overshoot.
+        """
+        # The base class's `_calculate_command_velocity` method has already
+        # determined the ideal velocity command and stored it in `self.command.vel_c`.
+        # The INDI environment's only task-specific action is to pass this
+        # command directly to the simulation's internal flight controller.
+        
+        cmd = self.sim.pilot_cmd.vel_K_R_E_C_cmd_mDs
+        cmd.u_K_R_E_C_cmd_mDs = self.command_vel[0] + self.delta_cmd_vel[0]
+        cmd.v_K_R_E_C_cmd_mDs = self.command_vel[1] + self.delta_cmd_vel[1]
+        cmd.w_K_R_E_C_cmd_mDs = self.command_vel[2] + self.delta_cmd_vel[2]
+
+        p_gain = 1.0
+        command_rpy = p_gain * self.error.rpy_rad
+
+        cmd_rpy = self.sim.pilot_cmd.att_euler_cmd
+        cmd_rpy.Phi_cmd_rad         = command_rpy[0] + self.delta_cmd_rpy[0]
+        cmd_rpy.Theta_cmd_rad       = command_rpy[1] + self.delta_cmd_rpy[1]
+        cmd_rpy.Psi_dot_cmd_radDs   = command_rpy[2] + self.delta_cmd_rpy[2]
+
+    # Now follow up with basic RL Base Class handling...
+
     def _reset_reward_terms(self):
         """Helper to reset reward components for logging."""
         self.reward.total = 0.0
@@ -101,7 +137,6 @@ class RMT_RL_Env(RMT_Base, ABC):
         info['reward_terms'] = getattr(self.reward, 'terms', {})
         return info
 
-    # --- Basic methods for concrete RL environments to implement, state_obs are flexible and base_obs are reused ---
     def _get_obs(self) -> dict: #
         """
         (Implements RMT_Base._get_obs)
@@ -117,20 +152,6 @@ class RMT_RL_Env(RMT_Base, ABC):
         
         return flat_obs
 
-
-    def _update_task_specifics(self) -> None:
-        """
-        (Implements RMT_Base._update_task_specifics)
-        This is the ideal place to calculate RL-specific navigation targets.
-        The base class has already updated the main target (`self.target`) and
-        calculated the ideal velocity command (`self.command.vel_c`).
-        """
-        # This is the place for child classes to implement their specific logic,
-        # e.g., calculating a Line-of-Sight target.
-        # By default, we do nothing here...
-        pass
-
-
     def build_action_space(self):
         """
         Defines the action space for the agent (e.g., direct motor commands).
@@ -141,12 +162,10 @@ class RMT_RL_Env(RMT_Base, ABC):
         """
         if self.action_space_type == "Box":
             # 8 motors, normalized continuous actions between -1 and 1
-            self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(8,), dtype=np.float32)
-        elif self.action_space_type == "MDisc":
-            # 8 motors, discrete actions from 0 to 100 (101 values)
-            self.action_space = spaces.MultiDiscrete([101] * 8)
+            # 3 times pos tagrets and 3 time rpy targets
+            self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float32)
         else:
-            raise ValueError(f"Unsupported action_space_type: {self.action_space_type}")
+            raise ValueError(f"Unsupported action_space_type:")
 
     def build_observation_space(self):
         # --- Observation Space Structure ---
@@ -164,6 +183,7 @@ class RMT_RL_Env(RMT_Base, ABC):
         flat_obs_space_dict = {**state_obs_spaces, **base_obs_spaces}
         
         return spaces.Dict(flat_obs_space_dict)
+
 
     @abstractmethod
     def build_state_obs_space(self) -> spaces.Dict:
@@ -289,40 +309,3 @@ class RMT_RL_Env(RMT_Base, ABC):
 
         self.reward.total = final_reward
         return self.reward.total
-
-
-    def action_masks(self) -> list[bool]:
-        """
-        Default action mask implementation for smooth actions. Can be overridden.
-        Requires a MultiDiscrete action space.
-        """
-        if not isinstance(self.action_space, spaces.MultiDiscrete):
-            raise NotImplementedError(
-                f"Action masking is only implemented for `MultiDiscrete` action spaces, "
-                f"but the current space is `{type(self.action_space).__name__}`."
-            )
-        
-        if not hasattr(self, 'action_index_map'):
-            # Cache the mapping from action component to flat index
-            # A more efficient way to calculate the start index of each action component
-            self.action_index_map = np.concatenate(([0], np.cumsum(self.action_space.nvec)[:-1]))
-
-        flat_dim = sum(self.action_space.nvec)
-        mask = np.ones(flat_dim, dtype=bool)
-
-        if self.mask_type == "smooth_cmd":
-            DISCRETE_SMOOTH_RANGE = 2
-            if self.clock > 0:
-                mask = np.zeros(flat_dim, dtype=bool)
-                for i in range(len(self.action_space.nvec)):
-                    low = max(self.action.discrete[i] - DISCRETE_SMOOTH_RANGE, 0)
-                    high = min(self.action.discrete[i] + DISCRETE_SMOOTH_RANGE, self.action_space.nvec[i] - 1) # -1 because nvec is size
-                    start_idx = self.action_index_map[i] + low
-                    end_idx = self.action_index_map[i] + high + 1
-                    mask[start_idx:end_idx] = True
-
-        elif self.mask_type == "logical":
-            print(">> Warning: Training with WIP 'logical' mask <<")
-            pass # Keep mask as all ones
-
-        return mask.tolist()

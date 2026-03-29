@@ -45,11 +45,14 @@ import copy
 # Importiere Hilfsfunktionen und die korrekte Umgebung
 #from rmt_coptergym.utils.utils import plot_trajectory_results
 
+from rmt_coptergym.application_envs.RL_VEL_Env_absolute import VEL_Env
+env_string = "absBasic"
+
 #from rmt_coptergym.application_envs.RL_VEL_Env_relative import VEL_Env
 #env_string = "relBasicInt"
 
-from rmt_coptergym.application_envs.RL_VEL_rel_IntDW import VEL_Env
-env_string = "rel_IntDW"
+#from rmt_coptergym.application_envs.RL_VEL_rel_IntDW import VEL_Env
+#env_string = "rel_IntDW"
 
 #from rmt_coptergym.application_envs.RL_VEL_rel_PID import PID_VEL_Env as VEL_Env
 #env_string = "rel_PID"
@@ -379,7 +382,7 @@ def main():
     # =================================================================================
     # --- 1. ZENTRALE KONFIGURATION ---
     # =================================================================================
-    training_steps = 1# 4_000_000 #1_000_000
+    training_steps = 3_000_000 #1_000_000
 
     # 82 min for 1mil 24 cores, 
     # 150 min for 2mil 36 cores
@@ -388,7 +391,7 @@ def main():
 
     CONFIG = {
         "save_name": "",
-        "run_info": "test_run",
+        "run_info": "AbsEnv_IncreasedDynWeights_BasicNets",
         "num_cpu": 8,
 
         # --- Curriculum Learning Stages --- 4x500k @8 core = 3020 sek = 50.3min
@@ -496,21 +499,21 @@ def main():
             "reward_weights": {
                 # Performance Goals:
                 # Main Error Tracking, Integral Important to avoid drifts and static offsets
-                "vel": 3.0,
+                "vel": 2,#3.0,
                 "integral": 2.5, 
                 "yaw": 2.0,
 
                 # Physics
                 # important during hovering - but for flying contra productive, still kept as small correction
                 "rollpitch": 0.1,
-                "accel": 0.05,
-                "omega": 0.05,
+                "accel": 0.25,#0.05,
+                "omega": 0.25,#0.05,
 
                 # Efficiancy
                 # Paired Efficiency ist fundamental for normal operation X8, same with balance - smoothness cinflicts wich dynamic control
                 "paired_efficiency": 0.5,
                 "balance": 0.5,
-                "smoothness": 0.05, 
+                "smoothness": 0.5,#0.05, 
 
                 # --- HARD CONSTRAINTS ---
                 "comfort_zone": 1.0
@@ -521,7 +524,7 @@ def main():
         "model_kwargs": {
             'policy': 'MultiInputPolicy',
             'policy_kwargs': dict(
-                net_arch=dict(pi=[256, 256], vf=[256, 256]), #[128, 128]  # default [64, 64]
+                net_arch=dict(pi=[64, 64], vf=[64, 64]), # dict(pi=[256, 256], vf=[256, 256]), # my approach vs default [64, 64]
                 activation_fn=torch.nn.Tanh
             ),
             'n_steps': 2048,

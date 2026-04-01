@@ -35,8 +35,8 @@ class VEL_Env(RMT_Hybrid_Env):
             default_weights.update(reward_weights)
         self.reward_weights = default_weights
 
-        self.scaling_delta_veltarget = 0.5 # scaling how many m/s we want to differ on each step = half 
-        self.scaling_delta_rpytarget = np.deg2rad(20) # scaling how many rads we want to change for each step
+        self.scaling_delta_veltarget = 2 # scaling how many m/s we want to differ on each step = half 
+        self.scaling_delta_rpytarget = np.deg2rad(45) # scaling how many rads we want to change for each step
 
         super().__init__(**kwargs)
 
@@ -77,8 +77,8 @@ class VEL_Env(RMT_Hybrid_Env):
         custom relative overwrite from Base_Env
         """
         if self.action_space_type == "Box": 
-            self.delta_cmd_vel = delta_action[0:3] *2  # scale is +/- 2m/s which is nominal INDI speed
-            self.delta_cmd_rpy = delta_action[3:6] *np.deg2rad(45)    # scale is +/- 45degree which is 
+            self.delta_cmd_vel = delta_action[0:3] *self.scaling_delta_veltarget  # scale is +/- 2m/s which is nominal INDI speed
+            self.delta_cmd_rpy = delta_action[3:6] *self.scaling_delta_rpytarget  # scale is +/- 45degree which is 
 
             self.action.box = delta_action
             # Defined between -1 and 1, shifting to 0..1 and scale to motorlimits
@@ -147,7 +147,7 @@ class VEL_Env(RMT_Hybrid_Env):
         # 4. Multipliziere mit der Comfort Zone (Hard Constraint bleibt multiplikativ)
         # Das ist gut so! Wenn er die Comfort Zone verlässt, soll der Reward einbrechen,
         # egal wie gut die Summe ist.
-        base_reward = float(additive_base) * (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
+        base_reward = float(additive_base) #* (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
         
         # Log the components for analysis
         self.reward.terms['vel_tracking']       = {'w': weights.get('vel', 1.0),                'r': vel_reward, 'error': self.normalized_dict['error_vel']}
@@ -155,7 +155,7 @@ class VEL_Env(RMT_Hybrid_Env):
         self.reward.terms['yaw']                = {'w': weights.get('yaw', 1.0),                'r': yaw_reward, 'error': self.normalized_dict['error_rpy'][2]}
         self.reward.terms['omega']              = {'w': weights.get('omega', 1.0),              'r': omega_reward, 'error': self.normalized_dict['omega']}
         self.reward.terms['accel']              = {'w': weights.get('accel', 1.0),              'r': accel_reward, 'error': self.normalized_dict['accel']}
-        self.reward.terms['comfort_zone']       = {'w': weights.get('comfort_zone', 1.0),       'r': comfort_zone_reward, 'error': (np.abs(self.limits.motor.range/2)-self.action.cmd)}
+        #self.reward.terms['comfort_zone']       = {'w': weights.get('comfort_zone', 1.0),       'r': comfort_zone_reward, 'error': (np.abs(self.limits.motor.range/2)-self.action.cmd)}
         #self.reward.terms['paired_efficiency']  = {'w': weights.get('paired_efficiency', 1.0),  'r': paired_efficiency_reward, 'error': pair_error}
         #self.reward.terms['balance']            = {'w': weights.get('balance', 1.0),            'r': balance_reward, 'error': balance_error}
         self.reward.terms['smoothness']         = {'w': weights.get('smoothness', 1.0),         'r': smoothness_reward, 'error': smoothness_error}

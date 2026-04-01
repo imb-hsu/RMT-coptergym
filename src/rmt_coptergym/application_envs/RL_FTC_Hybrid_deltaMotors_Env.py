@@ -141,7 +141,7 @@ class VEL_Env(RMT_Hybrid_Env):
         # 4. Multipliziere mit der Comfort Zone (Hard Constraint bleibt multiplikativ)
         # Das ist gut so! Wenn er die Comfort Zone verlässt, soll der Reward einbrechen,
         # egal wie gut die Summe ist.
-        base_reward = float(additive_base) * (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
+        base_reward = float(additive_base) #* (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
         
         # Log the components for analysis
         self.reward.terms['vel_tracking']       = {'w': weights.get('vel', 1.0),                'r': vel_reward, 'error': self.normalized_dict['error_vel']}
@@ -149,7 +149,7 @@ class VEL_Env(RMT_Hybrid_Env):
         self.reward.terms['yaw']                = {'w': weights.get('yaw', 1.0),                'r': yaw_reward, 'error': self.normalized_dict['error_rpy'][2]}
         self.reward.terms['omega']              = {'w': weights.get('omega', 1.0),              'r': omega_reward, 'error': self.normalized_dict['omega']}
         self.reward.terms['accel']              = {'w': weights.get('accel', 1.0),              'r': accel_reward, 'error': self.normalized_dict['accel']}
-        self.reward.terms['comfort_zone']       = {'w': weights.get('comfort_zone', 1.0),       'r': comfort_zone_reward, 'error': (np.abs(self.limits.motor.range/2)-self.action.cmd)}
+        #self.reward.terms['comfort_zone']       = {'w': weights.get('comfort_zone', 1.0),       'r': comfort_zone_reward, 'error': (np.abs(self.limits.motor.range/2)-self.action.cmd)}
         #self.reward.terms['paired_efficiency']  = {'w': weights.get('paired_efficiency', 1.0),  'r': paired_efficiency_reward, 'error': pair_error}
         #self.reward.terms['balance']            = {'w': weights.get('balance', 1.0),            'r': balance_reward, 'error': balance_error}
         self.reward.terms['smoothness']         = {'w': weights.get('smoothness', 1.0),         'r': smoothness_reward, 'error': smoothness_error}

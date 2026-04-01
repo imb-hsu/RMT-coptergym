@@ -48,17 +48,9 @@ import copy
 from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaMotors_Env import VEL_Env
 env_string = "FTC_deltaMotor"
 
-from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaTargets_Env import VEL_Env
-env_string = "FTC_deltaTargets"
+#from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaTargets_Env import VEL_Env
+#env_string = "FTC_deltaTargets"
 
-#from rmt_coptergym.application_envs.RL_VEL_Env_relative import VEL_Env
-#env_string = "relBasicInt"
-
-#from rmt_coptergym.application_envs.RL_VEL_rel_IntDW import VEL_Env
-#env_string = "rel_IntDW"
-
-#from rmt_coptergym.application_envs.RL_VEL_rel_PID import PID_VEL_Env as VEL_Env
-#env_string = "rel_PID"
 
 from rmt_coptergym.utils.plots import EvaluationPlots
 from rmt_coptergym.utils.trajectory_dataloader import TrajectoryDataLoader

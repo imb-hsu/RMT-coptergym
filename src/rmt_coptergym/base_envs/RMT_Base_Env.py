@@ -299,7 +299,7 @@ class RMT_Base(gym.Env, ABC):
         self._set_internal_state('init')
 
     def _set_action_state(self, initial_motor_setup):
-        initial_cmds = initial_motor_setup * np.ones(self.action_space.shape, dtype=np.float64)
+        initial_cmds = initial_motor_setup * np.ones(8) #not based on actionspace as we might use teh same motorlayout but differnet action_systems... self.action_space.shape, dtype=np.float64)
         self.action.cmd = initial_cmds
         self.action.cmd_old = initial_cmds.copy()
         self.action.box       = np.zeros(self.action_space.shape, dtype=np.float64)
@@ -395,7 +395,7 @@ class RMT_Base(gym.Env, ABC):
         self.sim.pilot_cmd.arm_swi = True
         self.sim.pilot_cmd.override_swi = True # Keep override enabled
         self.sim.pilot_cmd.vel_att_mode_swi = True
-        self.sim.pilot_cmd.vel_K_R_E_C_cmd_mDs.w_K_R_E_C_cmd_mDs = -2.0
+        self.sim.pilot_cmd.vel_K_R_E_C_cmd_mDs.w_K_R_E_C_cmd_mDs = 0
         self._internal_step()
 
         # --- Third, "settling" step ---
@@ -427,9 +427,6 @@ class RMT_Base(gym.Env, ABC):
         self.sim.sim_control.flg_Enable_Sensor_Errors = False    # not tested to set on true
         self.sim.sim_control.flg_Enable_Controller = self.sim.controlled
 
-        self._internal_step()
-        self._internal_step()
-        self._internal_step()
         self._internal_step()
         self._internal_step()
         self._internal_step()
@@ -482,14 +479,13 @@ class RMT_Base(gym.Env, ABC):
             for i in range(8):
                 self.sim.failures.motor_loss[i] = self.anomaly.motorloss_vector[i] # directly affects the sim bus!
             # Assign inputs based on defect state - using a scaling dependency
-            effective_motor_cmds = self.action.cmd * (1.0 - self.anomaly.motorloss_vector)
+            effective_motor_cmds = self.action.cmd * (1.0 - 0) #self.anomaly.motorloss_vector)
             for i in range(8):
                 self.sim.w_cmd [i] = effective_motor_cmds[i]
         else:
             for i in range(8):
                 self.sim.w_cmd [i] = 0 # no delta action no change here!
             
-        #print('DEBUG: command: ', self.sim.w_cmd )
 
         """"
         # old approach: 
@@ -981,7 +977,9 @@ class RMT_Base(gym.Env, ABC):
             "action_box":       getattr(self.action, 'box', None),
             "action_disc":          getattr(self.action, 'discrete', None),
             "action_cmd":  getattr(self.action, 'cmd', None),
+            
             "motor_signal_measured_rps": self.agent.motor_signal,
+            "motor_signal_simin": self.sim.w_cmd,
 
             # Agent State (Raw)
             "agent_pos":        self.agent.pos,

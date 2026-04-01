@@ -1,4 +1,3 @@
-# Save as: gym_env/utils/dataloader.py
 
 import os
 import pandas as pd
@@ -180,6 +179,8 @@ class TrajectoryDataLoader:
         Returns:
             Tuple[List[pd.DataFrame], List[pd.DataFrame]]: A tuple containing (train_pool, eval_pool).
         """
+
+        print("TL-DataLoader-BaseDir: " + self.base_data_dir)
         train_pool = []
         eval_pool = []
         logging.info("\n--- Creating Train and Eval Pools according to curriculum ---")
@@ -189,8 +190,9 @@ class TrajectoryDataLoader:
                 logging.warning(f"  - Dataset '{dataset_name}' not found. Skipping."); continue
 
             all_files = self.datasets[dataset_name]
-            eval_file = all_files[0]
-            train_files = all_files[1:]
+            eval_file_list = [f for f in all_files if "0000" in os.path.basename(f)] #all_files[0]
+            eval_file = eval_file_list[0]
+            train_files = [f for f in all_files if "0000" not in os.path.basename(f)] #all_files[1:]
 
             # 1. Fill Eval-Pool
             # logging.info(f"  - Adding eval trajectory from '{dataset_name}' to Eval Pool.")

@@ -979,7 +979,7 @@ class RMT_Base(gym.Env, ABC):
             "action_cmd":  getattr(self.action, 'cmd', None),
             
             "motor_signal_measured_rps": self.agent.motor_signal,
-            "motor_signal_simin": self.sim.w_cmd,
+            "motor_signal_sim_input": np.array(self.sim.w_cmd, dtype=np.float64),
 
             # Agent State (Raw)
             "agent_pos":        self.agent.pos,

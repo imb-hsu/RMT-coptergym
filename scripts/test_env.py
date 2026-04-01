@@ -107,7 +107,7 @@ def build_row(step, info, action):
         "indi_vel": fmt(info["indi_cmd_vel"]),
         "action": fmt(action),
         "motor_rps": fmt(info["motor_signal_measured_rps"]),
-        "sim_in": fmt(info["motor_signal_simin"]),
+        "sim_in": fmt(info["motor_signal_sim_input"]),
         "anomaly": fmt(info["anomaly_motorloss"]),
     }
 

@@ -386,7 +386,7 @@ def main():
 
     CONFIG = {
         "save_name": "",
-        "run_info": "AbsEnv_IncreasedDynWeights_BasicNets",
+        "run_info": "normal_SB3_hyperparams",
         "num_cpu": 8,
 
         # --- Curriculum Learning Stages --- 4x500k @8 core = 3020 sek = 50.3min

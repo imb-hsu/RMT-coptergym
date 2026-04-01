@@ -40,6 +40,18 @@ class VEL_Env(RMT_Hybrid_Env):
 
         super().__init__(**kwargs)
 
+    def update_weights_online(self, new_weights: Dict[str, Any] ):
+        """
+        Updates the environment weights dynamically (e.g. reward weights)
+        without requiring a full reset/recreation.
+        """
+        if new_weights:
+            # Update des Dictionaries (existierende Keys behalten, neue überschreiben)
+            self.reward_weights.update(new_weights)
+            print(f"DEBUG: Reward weights updated with {new_weights} to: {self.reward_weights}")
+        else:
+            print('DEBUG: No WeightUpdate')
+
     def build_state_obs_space(self) -> spaces.Dict:
         """Defines the 'state' part of the observation space for velocity tracking."""
         # The agent primarily needs to know its velocity error and attitude error for stability.

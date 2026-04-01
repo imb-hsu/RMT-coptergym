@@ -34,9 +34,22 @@ class VEL_Env(RMT_Hybrid_Env):
         if reward_weights is not None:
             default_weights.update(reward_weights)
         self.reward_weights = default_weights
-        super().__init__(**kwargs)
 
         self.scaling_delta_action = 50 # scaling how many rads we want to change for each step
+
+        super().__init__(**kwargs)
+
+    def update_weights_online(self, new_weights: Dict[str, Any] ):
+        """
+        Updates the environment weights dynamically (e.g. reward weights)
+        without requiring a full reset/recreation.
+        """
+        if new_weights:
+            # Update des Dictionaries (existierende Keys behalten, neue überschreiben)
+            self.reward_weights.update(new_weights)
+            print(f"DEBUG: Reward weights updated with {new_weights} to: {self.reward_weights}")
+        else:
+            print('DEBUG: No WeightUpdate')
 
     def build_state_obs_space(self) -> spaces.Dict:
         """Defines the 'state' part of the observation space for velocity tracking."""

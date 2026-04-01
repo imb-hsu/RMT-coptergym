@@ -9,7 +9,7 @@ TARGET = RMT_FDM_DLL_FrameWork_FCS_RT.dll
 # Find all .c files, but exclude ert_main.c because it contains a `main`
 # function which we don't want in a shared library.
 SOURCES_ALL = $(wildcard *.c)
-EXCLUDE_FILES = ert_main.c
+EXCLUDE_FILES = ert_main.c _cTest.c
 SOURCES = $(filter-out $(EXCLUDE_FILES), $(SOURCES_ALL))
 
 # Ersetze die .c Endung durch .o (für Objektdateien)

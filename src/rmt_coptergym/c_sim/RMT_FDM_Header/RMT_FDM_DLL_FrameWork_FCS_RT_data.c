@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'RMT_FDM_DLL_FrameWork_FCS_RT'.
  *
- * Model version                  : 11.34
+ * Model version                  : 11.39
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Thu Dec  4 22:28:01 2025
+ * C/C++ source code generated on : Mon Mar 30 13:54:53 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -34,7 +34,26 @@ const ConstB_RMT_FDM_DLL_FrameWork_FCS_RT_T RMT_FDM_DLL_FrameWork_FCS_RT_ConstB 
   293.0,                               /* '<S4>/Gain1' */
   101299.99999999999,                  /* '<S4>/Gain2' */
   1.225,                               /* '<S4>/Gain3' */
-  348.0                                /* '<S4>/Gain4' */
+  348.0,                               /* '<S4>/Gain4' */
+
+  { 0.0, 0.0, 1.0 },                   /* '<S33>/Vector Concatenate2' */
+
+  { 0.0, 0.0, 9.80665 },               /* '<S14>/Reshape3' */
+
+  { 1.0, 0.0, 0.0 },                   /* '<S37>/Vector Concatenate' */
+
+  { 0.0, 1.0, 0.0 },                   /* '<S38>/Vector Concatenate1' */
+
+  { 0.0, 0.0, 1.0 },                   /* '<S39>/Vector Concatenate2' */
+
+  { 0.0, 0.0, 0.0 },                   /* '<S40>/Reshape2' */
+  0.0,                                 /* '<S48>/Gain' */
+  0.0,                                 /* '<S48>/Gain6' */
+  0.0,                                 /* '<S48>/Gain7' */
+
+  { 0, 0, 0, 0, 0, 0, 0, 0 },          /* '<S17>/Data Type Conversion' */
+
+  { false, false, false, false, false, false, false, false, false, false }/* '<S17>/Vector Concatenate' */
 };
 
 /*

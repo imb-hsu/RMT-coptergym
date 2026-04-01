@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'RMT_FDM_DLL_FrameWork_FCS_RT'.
  *
- * Model version                  : 11.34
+ * Model version                  : 11.39
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Thu Dec  4 22:28:01 2025
+ * C/C++ source code generated on : Mon Mar 30 13:54:53 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -74,7 +74,6 @@
 extern const real_T rtCP_pooled_raz31ZrIdy7n[60];
 extern const real_T rtCP_pooled_Cz3Vgwc5I3f1[10];
 extern const real_T rtCP_pooled_bIDTE93hldEm[10];
-extern const real_T rtCP_pooled_o7MB5naIXTAF[3];
 extern const real_T rtCP_pooled_dCengxmYRl69[40];
 extern const real_T rtCP_pooled_VJqELOq8aki6;
 
@@ -87,17 +86,14 @@ extern const real_T rtCP_pooled_VJqELOq8aki6;
 #define rtCP_Constant3_Value           rtCP_pooled_bIDTE93hldEm  /* Expression: fcs_du_max
                                                                   * Referenced by: '<S17>/Constant3' (Parameter: Value)
                                                                   */
-#define rtCP_Constant1_Value_pg2h      rtCP_pooled_o7MB5naIXTAF  /* Expression: [0;0;9.80665]
-                                                                  * Referenced by: '<S14>/Constant1' (Parameter: Value)
-                                                                  */
-#define rtCP_Constant6_Value_kakl      rtCP_pooled_dCengxmYRl69  /* Expression: B_c(1:4,:)
-                                                                  * Referenced by: '<S17>/Constant6' (Parameter: Value)
-                                                                  */
-#define rtCP_Constant4_Value_nvih      rtCP_pooled_bIDTE93hldEm  /* Expression: fcs_du_max
+#define rtCP_Constant4_Value           rtCP_pooled_bIDTE93hldEm  /* Expression: fcs_du_max
                                                                   * Referenced by: '<S17>/Constant4' (Parameter: Value)
                                                                   */
-#define rtCP_Constant5_Value_b1up      rtCP_pooled_Cz3Vgwc5I3f1  /* Expression: fcs_du_min
+#define rtCP_Constant5_Value           rtCP_pooled_Cz3Vgwc5I3f1  /* Expression: fcs_du_min
                                                                   * Referenced by: '<S17>/Constant5' (Parameter: Value)
+                                                                  */
+#define rtCP_Constant6_Value           rtCP_pooled_dCengxmYRl69  /* Expression: B_c(1:4,:)
+                                                                  * Referenced by: '<S17>/Constant6' (Parameter: Value)
                                                                   */
 #define rtCP_Saturation_UpperSat       rtCP_pooled_bIDTE93hldEm  /* Expression: fcs_du_max
                                                                   * Referenced by: '<S17>/Saturation' (Parameter: UpperLimit)

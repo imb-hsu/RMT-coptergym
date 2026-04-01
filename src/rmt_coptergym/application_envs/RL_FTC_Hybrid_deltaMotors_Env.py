@@ -36,6 +36,8 @@ class VEL_Env(RMT_Hybrid_Env):
         self.reward_weights = default_weights
         super().__init__(**kwargs)
 
+        self.scaling_delta_action = 50 # scaling how many rads we want to change for each step
+
     def build_state_obs_space(self) -> spaces.Dict:
         """Defines the 'state' part of the observation space for velocity tracking."""
         # The agent primarily needs to know its velocity error and attitude error for stability.
@@ -52,19 +54,30 @@ class VEL_Env(RMT_Hybrid_Env):
             "rpy_error": self.normalized_dict['error_rpy'],
             "current_accel": self.normalized_dict['accel'],
         }
+
+    def build_action_space(self):
+        """
+        Defines the action space for the agent (e.g., direct motor commands).
+        This method is called by RMT_Base's __init__ to set self.action_space.
+        This implementation is common for most low-level control tasks.
+        Environments requiring a different action space (e.g., high-level commands)
+        can override this method.
+        """
+        if self.action_space_type == "Box":
+            # 8 motors, normalized continuous actions between -1 and 1
+            # 3 times pos tagrets and 3 time rpy targets
+            self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(8,), dtype=np.float32)
+        else:
+            raise ValueError(f"Unsupported action_space_type:")
     
     def _transform_action(self, delta_action):
         """
         custom relative overwrite from Base_Env
         """
         if self.action_space_type == "Box": 
-            self.delta_cmd_vel = delta_action[0:3] *2  # scale is +/- 2m/s which is nominal INDI speed
-            self.delta_cmd_rpy = delta_action[3:6] *np.deg2rad(45)    # scale is +/- 45degree which is 
+            self.action.cmd = delta_action *  self.scaling_delta_action
 
             self.action.box = delta_action
-            # Defined between -1 and 1, shifting to 0..1 and scale to motorlimits
-            motor_commands_rads = self.action.cmd_old + 50*delta_action# ((action + 1)/2) * self.limits.motor.range + self.limits.motor.min
-            self.action.cmd = np.array([0,0,0,0,0,0,0,0]) #np.np.clip(motor_commands_rads, self.limits.motor.min, self.limits.motor.max).astype(np.float64)
             self.action.disc = None #np.clip(motor_commands_disc, 0, 100).astype(np.int32)
         else:
             raise ValueError(f"Error: Unsupported action_space_type:")
@@ -91,32 +104,7 @@ class VEL_Env(RMT_Hybrid_Env):
         accel_reward_vec = self._calculate_reward_from_error(self.normalized_dict['accel'])
         accel_reward = float(0.5*np.mean(accel_reward_vec)+0.5*np.min(accel_reward_vec))
 
-        # --- 4. NEU: Paired Efficiency Reward (Dein physikalischer Ansatz) ---
-        pair_error = np.abs(self.action.cmd[[1,0,2,3]] - self.action.cmd[[4,5,7,6]]) / 200 #self.limits.motor.range
-        paired_efficiency_reward = float(np.mean(self._calculate_reward_from_error(pair_error)))
-
-        # --- 5. NEU: Overall Balance Reward (Die globale Sicherheit) ---
-        #std_dev_cmds = np.std(self.action.cmd)
-        #balance_error = np.clip(std_dev_cmds / (0.5 * self.limits.motor.range), 0, 1)
-        #balance_reward = self._calculate_reward_from_error(np.array([balance_error]))[0]
-        balance_error = np.mean(np.square(self.action.cmd/self.limits.motor.range))
-        balance_reward = np.exp(-balance_error * 1.5) 
-
-        # Definiere die Grenzen der Komfortzone
-        lower_bound = self.limits.motor.min + 0.25 * self.limits.motor.range # bei 35%
-        upper_bound = self.limits.motor.min + 0.75 * self.limits.motor.range # bei 65%
-
-        # Definiere den minimalen Reward an den Rändern (wichtig: nicht 0!)
-        MIN_REWARD_AT_EDGE = 0.3 
-
-        # Erstelle die Punkte für die Interpolation (die Ecken des Trapezoids)
-        # x-Werte: die Motor-Kommandos
-        xp = [self.limits.motor.min, lower_bound, upper_bound, self.limits.motor.max]
-        # y-Werte: die entsprechenden Reward-Werte
-        fp = [MIN_REWARD_AT_EDGE, 1.0, 1.0, MIN_REWARD_AT_EDGE]
-        # Berechne den Reward durch lineare Interpolation
-        comfort_zone_reward = np.interp(np.mean(self.action.cmd), xp, fp)
-
+        
         # --- 6. NEU: Control Smoothness Reward (Der "D-Anteil") ---
         action_delta =  self.action.box 
         smoothness_error = np.mean(np.square(action_delta)) #np.linalg.norm(action_delta) / (50+15)
@@ -126,30 +114,15 @@ class VEL_Env(RMT_Hybrid_Env):
         smoothness_reward = self._calculate_reward_from_error(np.array([smoothness_error]))[0]
 
         weights = self.reward_weights # Das Dictionary aus der __init__
-        
-        # reward_components = np.array([
-        #     vel_reward          ** weights.get('vel', 1.0),
-        #     rp_reward           ** weights.get('rollpitch', 1.0),
-        #     yaw_reward          ** weights.get('yaw', 1.0),
-        #     omega_reward        ** weights.get('omega', 1.0),
-        #     accel_reward        ** weights.get('accel', 1.0),
-        #     paired_efficiency_reward ** weights.get('paired_efficiency', 1.0),
-        #     balance_reward      ** weights.get('balance', 1.0),
-        #     smoothness_reward   ** weights.get('smoothness', 1.0)
-        # ])
-
-        # epsilon = 1e-6
-        # log_rewards = np.log(reward_components + epsilon)
-        # base_reward = float(np.exp(np.mean(log_rewards)))*(comfort_zone_reward ** weights.get('comfort_zone', 1.0))
-        
+         
         terms = [
                 (weights.get('vel', 1.0),                vel_reward),
                 (weights.get('rollpitch', 1.0),          rp_reward),
                 (weights.get('yaw', 1.0),                yaw_reward),
                 (weights.get('omega', 1.0),              omega_reward),
                 (weights.get('accel', 1.0),              accel_reward),
-                (weights.get('paired_efficiency', 1.0),  paired_efficiency_reward),
-                (weights.get('balance', 1.0),            balance_reward),
+                #(weights.get('paired_efficiency', 1.0),  paired_efficiency_reward),
+                #(weights.get('balance', 1.0),            balance_reward),
                 (weights.get('smoothness', 1.0),         smoothness_reward)
             ]
 
@@ -177,8 +150,8 @@ class VEL_Env(RMT_Hybrid_Env):
         self.reward.terms['omega']              = {'w': weights.get('omega', 1.0),              'r': omega_reward, 'error': self.normalized_dict['omega']}
         self.reward.terms['accel']              = {'w': weights.get('accel', 1.0),              'r': accel_reward, 'error': self.normalized_dict['accel']}
         self.reward.terms['comfort_zone']       = {'w': weights.get('comfort_zone', 1.0),       'r': comfort_zone_reward, 'error': (np.abs(self.limits.motor.range/2)-self.action.cmd)}
-        self.reward.terms['paired_efficiency']  = {'w': weights.get('paired_efficiency', 1.0),  'r': paired_efficiency_reward, 'error': pair_error}
-        self.reward.terms['balance']            = {'w': weights.get('balance', 1.0),            'r': balance_reward, 'error': balance_error}
+        #self.reward.terms['paired_efficiency']  = {'w': weights.get('paired_efficiency', 1.0),  'r': paired_efficiency_reward, 'error': pair_error}
+        #self.reward.terms['balance']            = {'w': weights.get('balance', 1.0),            'r': balance_reward, 'error': balance_error}
         self.reward.terms['smoothness']         = {'w': weights.get('smoothness', 1.0),         'r': smoothness_reward, 'error': smoothness_error}
         self.reward.base = base_reward
         

@@ -71,17 +71,26 @@ class RMT_Ctrl_Env(RMT_Base):
         ]).astype(np.float32)
         return obs
 
+    def _transform_action(self, action):
+        """
+        Translates agent action based on action_space_type to different internal
+        representations (box, discrete, and direct motor commands in rad/s).
+        """
+
+        self.action.cmd = None
+        self.action.box = None
+        self.action.mask= None
+
+
     def _update_task_specifics(self) -> None:
         """
         (Implements RMT_Base._update_task_specifics)
-        This is where the benchmark logic happens. We calculate the desired
-        velocity based on the position error to the current target, with
-        dynamic damping to prevent overshoot.
+        This is where the benchmark logic happens. We apply the desired
+        velocity based on _calculate_command_velocity.
+        The INDI environment's task-specific action is to pass this
+        command directly to the simulation's internal flight controller. 
+        It acts as a baseline and can be adjsuted with external motorcommands.
         """
-        # The base class's `_calculate_command_velocity` method has already
-        # determined the ideal velocity command and stored it in `self.command.vel_c`.
-        # The INDI environment's only task-specific action is to pass this
-        # command directly to the simulation's internal flight controller.
         
         cmd = self.sim.pilot_cmd.vel_K_R_E_C_cmd_mDs
         cmd.u_K_R_E_C_cmd_mDs = self.command_vel[0]

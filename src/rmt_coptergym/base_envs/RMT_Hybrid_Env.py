@@ -152,20 +152,6 @@ class RMT_Hybrid_Env(RMT_Base):
         
         return flat_obs
 
-    def build_action_space(self):
-        """
-        Defines the action space for the agent (e.g., direct motor commands).
-        This method is called by RMT_Base's __init__ to set self.action_space.
-        This implementation is common for most low-level control tasks.
-        Environments requiring a different action space (e.g., high-level commands)
-        can override this method.
-        """
-        if self.action_space_type == "Box":
-            # 8 motors, normalized continuous actions between -1 and 1
-            # 3 times pos tagrets and 3 time rpy targets
-            self.action_space = spaces.Box(low=-1.0, high=1.0, shape=(6,), dtype=np.float32)
-        else:
-            raise ValueError(f"Unsupported action_space_type:")
 
     def build_observation_space(self):
         # --- Observation Space Structure ---

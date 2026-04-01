@@ -475,14 +475,19 @@ class RMT_Base(gym.Env, ABC):
     
     def _set_dll_inputs(self):
         """Apply action.cmd to the appropriate motors based on defects."""
-        #Check for Changes/Updates on the anomaly
-        self.anomaly.motorloss_vector = self._get_current_motor_loss_vector() 
-        for i in range(8):
-            self.sim.failures.motor_loss[i] = self.anomaly.motorloss_vector[i]
-        # Assign inputs based on defect state - using a scaling dependency
-        effective_motor_cmds = self.action.cmd * (1.0 - self.anomaly.motorloss_vector)
-        for i in range(8):
-            self.sim.w_cmd [i] = effective_motor_cmds[i]
+        #Check for Changes/Updates on the anomaly and if action.cmd is available
+
+        if self.action.cmd is not None:
+            self.anomaly.motorloss_vector = self._get_current_motor_loss_vector() 
+            for i in range(8):
+                self.sim.failures.motor_loss[i] = self.anomaly.motorloss_vector[i] # directly affects the sim bus!
+            # Assign inputs based on defect state - using a scaling dependency
+            effective_motor_cmds = self.action.cmd * (1.0 - self.anomaly.motorloss_vector)
+            for i in range(8):
+                self.sim.w_cmd [i] = effective_motor_cmds[i]
+        else:
+            for i in range(8):
+                self.sim.w_cmd [i] = 0 # no delta action no change here!
             
         #print('DEBUG: command: ', self.sim.w_cmd )
 
@@ -888,6 +893,21 @@ class RMT_Base(gym.Env, ABC):
 
         return self._get_obs(), self._get_info()
 
+    def update_logic(self):
+        # Calculate the ideal velocity command based on the mission.
+        self._calculate_command_velocity()
+
+        # --- Update Target and Error based on final command ---
+        # Set the official target velocity to the one calculated by the controller.
+        # This ensures consistency for logging and reward calculation.
+        self.target.vel_c = self.command_vel
+        # Now calculate the final velocity error for this step.
+        self.error.vel_c = self.target.vel_c - self.agent.vel_c
+        self.error.rpy_rad = self.target.rpy_rad - self.agent.rpy_rad
+
+        # Update task-specific errors
+        self._update_task_specifics()
+
 
     def step(self, action):
         """
@@ -902,28 +922,18 @@ class RMT_Base(gym.Env, ABC):
         self.mission.update_goal(env_time=self.clock, is_current_goal_achieved=is_achieved)
         self.set_targets() # set targets after mission update, so targets are valid for plotting and next iteration
 
+        self.update_logic() # update logic to definie vel_commands for upcoming sim_steps!
         
         # Update normalization constants based on the current mission goal (e.g., vel_limit)
         self._update_normalization_limit()
 
         self._do_sim_step(action)
 
+        self.update_logic() # update logic after steps for eval
+
         # Centralize normalization of the agent's state after the physical state is updated
         self._update_normalized_dictionary()
 
-        # Calculate the ideal velocity command based on the mission.
-        self._calculate_command_velocity()
-
-        # --- Update Target and Error based on final command ---
-        # Set the official target velocity to the one calculated by the controller.
-        # This ensures consistency for logging and reward calculation.
-        self.target.vel_c = self.command_vel
-        # Now calculate the final velocity error for this step.
-        self.error.vel_c = self.target.vel_c - self.agent.vel_c
-        self.error.rpy_rad = self.target.rpy_rad - self.agent.rpy_rad
-
-        # Update task-specific errors
-        self._update_task_specifics()
 
         # Check for episode end (termination/truncation)
         terminated, truncated = self.check_episode_end()
@@ -1003,6 +1013,18 @@ class RMT_Base(gym.Env, ABC):
             "error_rpy_deg":    self.error.rpy_deg,
             # Defects
             "anomaly_motorloss":    self.anomaly.motorloss_vector,
+
+            "indi_cmd_vel": np.array([
+                self.sim.pilot_cmd.vel_K_R_E_C_cmd_mDs.u_K_R_E_C_cmd_mDs,
+                self.sim.pilot_cmd.vel_K_R_E_C_cmd_mDs.v_K_R_E_C_cmd_mDs,
+                self.sim.pilot_cmd.vel_K_R_E_C_cmd_mDs.w_K_R_E_C_cmd_mDs,
+            ]),
+
+            "indi_cmd_rpy": np.array([
+                self.sim.pilot_cmd.att_euler_cmd.Phi_cmd_rad,
+                self.sim.pilot_cmd.att_euler_cmd.Theta_cmd_rad,
+                self.sim.pilot_cmd.att_euler_cmd.Psi_dot_cmd_radDs,
+            ]),
 
             "normalized_dict": self.normalized_dict,
             

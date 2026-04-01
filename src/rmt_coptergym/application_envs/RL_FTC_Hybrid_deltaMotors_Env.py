@@ -26,9 +26,9 @@ class VEL_Env(RMT_Hybrid_Env):
             "yaw": 1.0,
             "omega": 1.0,
             "accel": 1.0,
-            "comfort_zone": 1.0,
-            "paired_efficiency": 1.0,
-            "balance": 1.0,
+            #"comfort_zone": 1.0,
+            #"paired_efficiency": 1.0,
+            #"balance": 1.0,
             "smoothness": 0.1
         }
         if reward_weights is not None:

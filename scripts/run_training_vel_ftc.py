@@ -413,7 +413,6 @@ def main():
                 "env_kwargs": {
                     # Wir erlauben hier noch etwas mehr "Sicherheits-Abstand"
                     "reward_weights": { 
-                        "integral": 2.0 
                     } 
                 }
             },
@@ -442,7 +441,6 @@ def main():
                 },
                 "timesteps": training_steps,
                 "env_kwargs": {
-                    # Gewichte bleiben stabil, damit er sich nicht umgewöhnen muss
                 }
             },
 
@@ -474,9 +472,7 @@ def main():
                 "timesteps": int(training_steps * 2.0), 
                 "env_kwargs": {
                     "reward_weights": {
-                        # Optional: Integral noch wichtiger machen für finalen 0-Offset
-                        "integral": 3.0,
-                        "vel": 3.5
+
                     },
                 }
             }
@@ -492,27 +488,16 @@ def main():
             'ctrl_freq': 125,
             'use_unix': platform.system() != "Windows",
             "reward_weights": {
-                # Performance Goals:
-                # Main Error Tracking, Integral Important to avoid drifts and static offsets
-                "vel": 2,#3.0,
-                "integral": 2.5, 
+                #main target
+                "vel": 2.0,
+                #stability
+                "rollpitch": 1.0,
                 "yaw": 2.0,
-
-                # Physics
-                # important during hovering - but for flying contra productive, still kept as small correction
-                "rollpitch": 0.1,
-                "accel": 0.25,#0.05,
-                "omega": 0.25,#0.05,
-
-                # Efficiancy
-                # Paired Efficiency ist fundamental for normal operation X8, same with balance - smoothness cinflicts wich dynamic control
-                "paired_efficiency": 0.5,
-                "balance": 0.5,
-                "smoothness": 0.5,#0.05, 
-
-                # --- HARD CONSTRAINTS ---
-                "comfort_zone": 1.0
-            
+                #dynamics
+                "omega": 0.5,
+                "accel": 0.5,
+                # RL influence/change
+                "smoothness": 0.1
             }
         },
 

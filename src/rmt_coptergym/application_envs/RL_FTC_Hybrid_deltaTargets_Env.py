@@ -48,7 +48,7 @@ class VEL_Env(RMT_Hybrid_Env):
         if new_weights:
             # Update des Dictionaries (existierende Keys behalten, neue überschreiben)
             self.reward_weights.update(new_weights)
-            print(f"DEBUG: Reward weights updated with {new_weights} to: {self.reward_weights}")
+            #print(f"DEBUG: Reward weights updated with {new_weights} to: {self.reward_weights}")
         else:
             print('DEBUG: No WeightUpdate')
 
@@ -68,6 +68,7 @@ class VEL_Env(RMT_Hybrid_Env):
             "rpy_error": self.normalized_dict['error_rpy'],
             "current_accel": self.normalized_dict['accel'],
         }
+
 
     def build_action_space(self):
         """

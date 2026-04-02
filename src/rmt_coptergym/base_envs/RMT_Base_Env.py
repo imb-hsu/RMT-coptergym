@@ -299,7 +299,7 @@ class RMT_Base(gym.Env, ABC):
         self._set_internal_state('init')
 
     def _set_action_state(self, initial_motor_setup):
-        initial_cmds = initial_motor_setup * np.ones(8) #not based on actionspace as we might use teh same motorlayout but differnet action_systems... self.action_space.shape, dtype=np.float64)
+        initial_cmds = initial_motor_setup * np.ones(self.action_space.shape, dtype=np.float64)
         self.action.cmd = initial_cmds
         self.action.cmd_old = initial_cmds.copy()
         self.action.box       = np.zeros(self.action_space.shape, dtype=np.float64)
@@ -479,7 +479,7 @@ class RMT_Base(gym.Env, ABC):
             for i in range(8):
                 self.sim.failures.motor_loss[i] = self.anomaly.motorloss_vector[i] # directly affects the sim bus!
             # Assign inputs based on defect state - using a scaling dependency
-            effective_motor_cmds = self.action.cmd * (1.0 - 0) #self.anomaly.motorloss_vector)
+            effective_motor_cmds = self.action.cmd  # priro with *(1-self.anomaly.motorloss_vector), but now we have sim bus to do that
             for i in range(8):
                 self.sim.w_cmd [i] = effective_motor_cmds[i]
         else:

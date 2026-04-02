@@ -45,11 +45,11 @@ import copy
 # Importiere Hilfsfunktionen und die korrekte Umgebung
 #from rmt_coptergym.utils.utils import plot_trajectory_results
 
-from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaMotors_Env import VEL_Env
-env_string = "FTC_deltaMotor"
+#from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaMotors_Env import VEL_Env
+#env_string = "FTC_deltaMotor"
 
-#from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaTargets_Env import VEL_Env
-#env_string = "FTC_deltaTargets"
+from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaTargets_Env import VEL_Env
+env_string = "FTC_deltaTargets"
 
 
 from rmt_coptergym.utils.plots import EvaluationPlots
@@ -377,7 +377,7 @@ def main():
     # =================================================================================
     # --- 1. ZENTRALE KONFIGURATION ---
     # =================================================================================
-    training_steps = 3_000_000 #1_000_000
+    training_steps = 1# 3_000_000 #1_000_000
 
     # 82 min for 1mil 24 cores, 
     # 150 min for 2mil 36 cores
@@ -387,7 +387,7 @@ def main():
     CONFIG = {
         "save_name": "",
         "run_info": "normal_SB3_hyperparams",
-        "num_cpu": 8,
+        "num_cpu": 2,# 8,
 
         # --- Curriculum Learning Stages --- 4x500k @8 core = 3020 sek = 50.3min
         "curriculum_stages": [
@@ -483,7 +483,7 @@ def main():
         "env_kwargs": {
             'reward_function': 'exponential',
             'reward_type': 'additive',
-            'anomaly_knowledge': True,
+            'anomaly_knowledge': False,
             'action_space_type': 'Box',
             'ctrl_freq': 125,
             'use_unix': platform.system() != "Windows",

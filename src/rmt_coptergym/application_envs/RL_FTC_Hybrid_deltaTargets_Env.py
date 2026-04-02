@@ -33,6 +33,7 @@ class VEL_Env(RMT_Hybrid_Env):
         }
         if reward_weights is not None:
             default_weights.update(reward_weights)
+
         self.reward_weights = default_weights
 
         self.scaling_delta_veltarget = 2 # scaling how many m/s we want to differ on each step = half 
@@ -68,6 +69,30 @@ class VEL_Env(RMT_Hybrid_Env):
             "rpy_error": self.normalized_dict['error_rpy'],
             "current_accel": self.normalized_dict['accel'],
         }
+
+    def get_base_observation(self) -> dict:
+        """
+        Computes the 'base_obs' (static context) part of the observation dictionary.
+        This implementation is consistent across all environments.
+        """
+        if self.has_anomaly_knowledge:
+            obs= {
+                "current_vel": self.normalized_dict['vel_c'].astype(np.float32),
+                "current_rpy": self.normalized_dict['rpy'].astype(np.float32),
+                "current_omega": self.normalized_dict['omega'].astype(np.float32),
+                "vel_limit": self._normalize_vector(self.norm_vel_max, -12, 12),
+                "last_action": self.last_action, # defined in base_env
+                "motor_loss": self.anomaly.motorloss_vector.astype(np.float32)
+            }
+        else:
+            obs= {
+                "current_vel": self.normalized_dict['vel_c'].astype(np.float32),
+                "current_rpy": self.normalized_dict['rpy'].astype(np.float32),
+                "current_omega": self.normalized_dict['omega'].astype(np.float32),
+                "vel_limit": self._normalize_vector(self.norm_vel_max, -12, 12),
+                "last_action": self.last_action,
+            }
+        return obs
 
 
     def build_action_space(self):

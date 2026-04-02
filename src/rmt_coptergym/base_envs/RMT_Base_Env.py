@@ -299,7 +299,7 @@ class RMT_Base(gym.Env, ABC):
         self._set_internal_state('init')
 
     def _set_action_state(self, initial_motor_setup):
-        initial_cmds = initial_motor_setup * np.ones(self.action_space.shape, dtype=np.float64)
+        initial_cmds = initial_motor_setup * np.ones(8)#self.action_space.shape, dtype=np.float64)
         self.action.cmd = initial_cmds
         self.action.cmd_old = initial_cmds.copy()
         self.action.box       = np.zeros(self.action_space.shape, dtype=np.float64)
@@ -340,6 +340,7 @@ class RMT_Base(gym.Env, ABC):
 
         self.trajectory.waypoints = None 
         if self.action_space_type: # Will be set in child class
+            self.last_action = np.zeros(self.action_space.shape, dtype=np.float64)
             self._set_action_state(self.agent.motor_signal)
 
             
@@ -940,6 +941,8 @@ class RMT_Base(gym.Env, ABC):
         # Get observation and info for the agent
         obs = self._get_obs()
         info = self._get_info()
+
+        self.last_action = action
 
         return obs, reward, terminated, truncated, info
 

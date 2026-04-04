@@ -6,7 +6,10 @@ import ast
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
-from rmt_coptergym.application_envs.RL_VEL_I_Env_relative_WAR import VEL_Env
+from rmt_coptergym.application_envs.RL_VEL_I_Env_relative_WAR import VEL_Env as VEL_Env_I
+from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaTargets_Env import VEL_Env as VEL_Env_FTC_target
+from rmt_coptergym.application_envs.RL_FTC_Hybrid_deltaMotors_Env import VEL_Env as VEL_Env_FTC_motor
+from rmt_coptergym.application_envs.RL_VEL_Env_absolute import VEL_Env as VEL_Env_abs
 from rmt_coptergym.utils.trajectory_dataloader import TrajectoryDataLoader
 from rmt_coptergym.utils.utils import plot_trajectory_results
 from metrics import parse_vector_col, calculate_metrics_physics, calculate_composite_score
@@ -49,7 +52,8 @@ def run_rl_simulation(agents_config, eval_missions, anomaly_groups, global_env_k
         base_kwargs['anomaly_pool'] = []
         base_kwargs['is_eval'] = True
         
-        vec_env = DummyVecEnv([lambda: PaperMetricsWrapper(VEL_Env(**base_kwargs))])
+        env_class = agent_cfg.get('class', VEL_Env_I)
+        vec_env = DummyVecEnv([lambda: PaperMetricsWrapper(env_class(**base_kwargs))])
         
         # Zugriff auf die "echte" Env Instanz für unsere Update-Funktion
         # vec_env -> PaperMetricsWrapper -> VEL_Env
@@ -122,7 +126,8 @@ def run_rl_simulation(agents_config, eval_missions, anomaly_groups, global_env_k
                         "RMSE_VEL": mets['rmse_vel'],
                         "RMSE_TE_VEL": mets['rmse_te_vel'],
                         "Energy": mets['energy'],
-                        "Jitter": mets['jitter'],
+                        "Motor_Jitter": mets['motor_jitter'],
+                        "Omega_Jitter": mets['omega_jitter'],
                         "Flight_Time": mets['flight_time'],
                         "Stability": mets['stability'],
                         "Max_WP": mets['max_wp'],
@@ -177,7 +182,8 @@ def collect_indi_results(indi_base_dir, motor_min, motor_range, ctrl_freq, missi
                         "RMSE_VEL": mets['rmse_vel'],
                         "RMSE_TE_VEL": mets['rmse_te_vel'],
                         "Energy": mets['energy'],
-                        "Jitter": mets['jitter'],
+                        "Motor_Jitter": mets['motor_jitter'],
+                        "Omega_Jitter": mets['omega_jitter'],
                         "Flight_Time": mets['flight_time'],
                         "Stability": mets['stability'],
                         "Max_WP": mets['max_wp'],
@@ -205,25 +211,60 @@ def main():
         project_root = "."
         
     rl_output_dir = os.path.join(project_root, "data", "Evaluation", "Raw_Files")
-    indi_input_dir = os.path.join(project_root, "data", "INDI_test") 
+    indi_input_dir = os.path.join(project_root, "data", "INDI") 
     
     AGENTS = {
+        "FTC_DMotor_Blind": {
+            "class": VEL_Env_FTC_motor,
+            "path": os.path.join(project_root, "saves", "PPO_VEL_2026-04-02_00-39_ENV_FTC_deltaMotor_add_AnoFalse__normal_SB3_hyperparams", "stage_3_Full_Profile_Extended", "final_model.zip"),
+            "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': False}
+        },
+        "FTC_DTarget_Blind": {
+            "class": VEL_Env_FTC_target,
+            "path": os.path.join(project_root, "saves", "PPO_VEL_2026-04-02_01-35_ENV_FTC_deltaTargets_add_AnoFalse__normal_SB3_hyperparams", "stage_3_Full_Profile_Extended", "best_model.zip"),
+            "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': False}
+        },
+        "RL_Default_MyParam_64Net": { # Sensitivitätsanalyse: Vergleich der Standard-Architektur [64,64] vs. Tuned [256,256]
+            "class": VEL_Env_abs,
+            "path": os.path.join(project_root, "saves", "PPO_VEL_2026-03-28_10-30_ENV_absBasic_add_AnoTrue__AbsEnv_SameWeights_BasicNets", "stage_3_Full_Profile_Extended", "best_model.zip"),
+            "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': True}
+        },
+        "RL_Default_SB3Param_64Net": { # Sensitivitätsanalyse: Einfluss des Verzichts auf Smoothness/Jitter-Penalty im Reward
+            "class": VEL_Env_abs,
+            "path": os.path.join(project_root, "saves", "PPO_VEL_2026-03-29_10-16_ENV_absBasic_add_AnoTrue__AbsEnv_SameWeights_BasicHyperparams", "stage_3_Full_Profile_Extended", "best_model.zip"),
+            "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': True}
+        },
+         "RL_Default_MyParam_256Net": { # Sensitivitätsanalyse: Einfluss des Verzichts auf Smoothness/Jitter-Penalty im Reward
+            "class": VEL_Env_abs,
+            "path": os.path.join(project_root, "saves", "PPO_VEL_2026-04-03_23-11_ENV_absBasic_add_AnoTrue__AbsEnv_SameWeights_SameNets", "stage_3_Full_Profile_Extended", "best_model.zip"),
+            "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': True}
+        },
+        #"RL_Default_SB3Param_64Net_tuned": { # Sensitivitätsanalyse: Vergleich hoher Learning Rate (1e-3) vs. Tuned (1e-4)
+        #    "class": VEL_Env_abs,
+        #    "path": os.path.join(project_root, "saves", "PPO_VEL_2026-03-28_20-44_ENV_absBasic_add_AnoTrue__AbsEnv_IncreasedDynWeights_BasicNets", "stage_3_Full_Profile_Extended", "best_model.zip"),
+        #    "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': True}
+        #},
         "RL_Add_Blind": {
+            "class": VEL_Env_I,
             "path": os.path.join(project_root, "saves", "PPO_VEL_Curriculum_2025-12-04_01-14_rel_I_Env_256Net_additive_newWAR_C2_noKnowledge", "stage_3_Full_Profile_Extended", "best_model.zip"), 
             "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': False}
         },
         "RL_Geo_Blind": {
+            "class": VEL_Env_I,
             "path": os.path.join(project_root, "saves", "PPO_VEL_Curriculum_2025-12-04_09-28_rel_I_Env_256Net_multiplicative_WAR_C2_NoKnowledge", "stage_3_Full_Profile_Extended", "best_model.zip"), 
             "env_kwargs": {'reward_type': 'multiplicative', 'anomaly_knowledge': False}
         },
         "RL_Add_Aware": {
+            "class": VEL_Env_I,
             "path": os.path.join(project_root, "saves", "PPO_VEL_Curriculum_2025-12-04_01-50_rel_I_Env_256Net_additive_newWAR_C2_Knowledge", "stage_3_Full_Profile_Extended", "best_model.zip"), 
             "env_kwargs": {'reward_type': 'additive', 'anomaly_knowledge': True}
         },
         "RL_Geo_Aware": {
+            "class": VEL_Env_I,
             "path": os.path.join(project_root, "saves", "PPO_VEL_Curriculum_2025-12-04_09-18_rel_I_Env_256Net_multiplicative_newWAR_C2_Knowledge", "stage_3_Full_Profile_Extended", "best_model.zip"), 
             "env_kwargs": {'reward_type': 'multiplicative', 'anomaly_knowledge': True}
-        }
+        },
+
     }
     
     # Initialize dummy Env and load const env 
@@ -232,7 +273,7 @@ def main():
         'anomaly_knowledge': False, 'ctrl_freq': 125, 
         'use_unix': platform.system() != "Windows"
     }
-    temp_env = VEL_Env(**ENV_KWARGS_GLOBAL) 
+    temp_env = VEL_Env_I(**ENV_KWARGS_GLOBAL) 
     MOTOR_MIN = temp_env.limits.motor.min 
     MOTOR_RANGE = temp_env.limits.motor.range 
     CTRL_FREQ = ENV_KWARGS_GLOBAL['ctrl_freq']
@@ -286,27 +327,37 @@ def main():
     if all_res:
         df_final = pd.DataFrame(all_res)
         
-        # Calculate Score
+        # 1. Score pro Flug berechnen (für summary_metrics_full.csv)
         df_final = calculate_composite_score(df_final)
 
+        # Speichere volle Zusammenfassung
+        out_csv_full = os.path.join(rl_output_dir, "summary_metrics_full.csv")
+        df_final.to_csv(out_csv_full, index=False)
         print(df_final.head(3))
         
-        # Save full summary
-        out_csv = os.path.join(rl_output_dir, "summary_metrics_full.csv")
-        df_final.to_csv(out_csv, index=False)
-
-        # Save small summary
-        out_csv = os.path.join(rl_output_dir, "summary_metrics_small.csv")
-        # Aggregate mean values for the small summary
-        summary_cols = ["Stability", "WCR", "RMSE_TE_XYZ", "RMSE_TE_RPY", "RMSE_TE_VEL", "Score"]
-        df_summary = df_final.groupby("Agent")[[c for c in summary_cols if c in df_final.columns]].mean().reset_index()
-        df_summary.to_csv(out_csv, index=False)
-        print("\n" + "="*34)
-        print(f"EVALUATION COMPLETE. Got all data. \nSaved to: {out_csv} \n")
-
+        # 2. Aggregierte Zusammenfassung erstellen (summary_metrics_small.csv)
+        # Wir mitteln NUR die Roh-Metriken. Die NORM-Werte und den Score berechnen wir NEU.
+        raw_metrics = ["Stability", "WCR", "RMSE_TE_XYZ", "RMSE_TE_RPY", "RMSE_TE_VEL", "Omega_Jitter", "Motor_Jitter"]
+        available_raw = [c for c in raw_metrics if c in df_final.columns]
         
-        # Print Score Overview
-        print(df_final.groupby("Agent")[["Stability", "WCR", "RMSE_TE_XYZ", "RMSE_TE_RPY", "RMSE_TE_VEL", "Score"]].mean())
+        # Gruppieren nach Agent und Mittelwert der ROHDATEN bilden
+        df_summary = df_final.groupby("Agent")[available_raw].mean().reset_index()
+
+        # JETZT den Score auf die gemittelten Rohdaten anwenden 
+        # (Das verhindert die Clipping-Verzerrung durch Ausreißer)
+        df_summary = calculate_composite_score(df_summary)
+
+        # Speichere kleine Zusammenfassung
+        out_csv_small = os.path.join(rl_output_dir, "summary_metrics_small.csv")
+        df_summary.to_csv(out_csv_small, index=False)
+        
+        print("\n" + "="*34)
+        print(f"EVALUATION COMPLETE. Got all data. \nFull: {out_csv_full} \nSmall: {out_csv_small} \n")
+
+        # Score Overview Print (Basierend auf der korrekten Summary)
+        # Wir zeigen alle Spalten an, die für den Score relevant sind
+        display_cols = [c for c in df_summary.columns if not c.startswith('NORM_')]
+        print(df_summary[display_cols].sort_values(by="Score", ascending=False))
         print("\n" + "="*34)
     else:
         print("[ERROR] Got no results to evaluate.")

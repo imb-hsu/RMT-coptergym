@@ -96,7 +96,11 @@ PALETTE = {
     "RL Add. (Blind)": "#E69F00", 
     "RL Geo. (Blind)": "#56B4E9", 
     "RL Add. (Aware)": "#D55E00", 
-    "RL Geo. (Aware)": "#0072B2", 
+    "RL Geo. (Aware)": "#0072B2",
+    "FTC Motor (Blind)": "#CC79A7",
+    "FTC Target (Blind)": "#F0E442",
+    "RL Def (MyParam)": "#009E73",
+    "RL Def (SB3Param)": "#999999",
 }
 
 NAME_MAPPING = {
@@ -105,9 +109,13 @@ NAME_MAPPING = {
     "RL_Geo_Blind": "RL Geo. (Blind)",
     "RL_Add_Aware": "RL Add. (Aware)",
     "RL_Geo_Aware": "RL Geo. (Aware)",
+    "FTC_DMotor_Blind": "FTC Motor (Blind)",
+    "FTC_DTarget_Blind": "FTC Target (Blind)",
+    "RL_Default_MyParam_64Net": "RL Def (MyParam)",
+    "RL_Default_SB3Param_64Net": "RL Def (SB3Param)",
 }
 
-HUE_ORDER = ["INDI", "RL Add. (Blind)", "RL Geo. (Blind)", "RL Add. (Aware)", "RL Geo. (Aware)"]
+HUE_ORDER = ["INDI", "RL Add. (Aware)", "RL Geo. (Aware)", "RL Add. (Blind)", "RL Geo. (Blind)", "FTC Motor (Blind)", "FTC Target (Blind)", "RL Def (MyParam)", "RL Def (SB3Param)"]
 
 
 Z_ORDER = {
@@ -116,7 +124,11 @@ Z_ORDER = {
     "RL Geo. (Blind)": 4,
     "RL Add. (Aware)": 5,
     "RL Geo. (Aware)": 6,
-    "INDI": 10 
+    "INDI": 10,
+    "FTC Motor (Blind)": 7,
+    "FTC Target (Blind)": 8,
+    "RL Def (MyParam)": 2,
+    "RL Def (SB3Param)": 2,
 }
 
 LINE_STYLES = {
@@ -153,7 +165,7 @@ def parse_vector_col(series):
         else: final.append(item)
     return np.array(final)
 
-def load_and_filter_data(csv_path):
+def load_and_filter_data(csv_path, selected_agents=None):
     if not os.path.exists(csv_path): raise FileNotFoundError(f"CSV fehlt: {csv_path}")
     df = pd.read_csv(csv_path)
     
@@ -177,6 +189,10 @@ def load_and_filter_data(csv_path):
     
     df = df[df["Scenario"].apply(is_valid_scenario)]
 
+    # Filter Selected Agents
+    if selected_agents:
+        # Filter based on mapped names or original names
+        df = df[df["Agent"].isin(selected_agents)]
     
     # Calculate Score if not present (or recalculate to be safe)
     df = calculate_composite_score(df)
@@ -188,7 +204,7 @@ def load_and_filter_data(csv_path):
 # ==============================================================================
 def generate_latex_table(df, output_dir):
     print("   Generate LaTeX Table")
-    metrics = ["Stability", "WCR", "RMSE_TE_VEL", "RMSE_TE_XYZ", "RMSE_TE_RPY", "Score" ] #, "Energy"]
+    metrics = ["Stability", "WCR", "RMSE_TE_VEL", "RMSE_TE_XYZ", "RMSE_TE_RPY", "Omega_Jitter", "Motor_Jitter", "Score" ]
     available = [m for m in metrics if m in df.columns]
     
     grouped = df.groupby("Agent")[available]
@@ -198,7 +214,7 @@ def generate_latex_table(df, output_dir):
 
     df_tex = pd.DataFrame(index=means.index)
     for m in available:
-        if m in ["RMSE_TE_VEL", "RMSE_TE_XYZ", "RMSE_TE_RPY", "Score"]:
+        if m in ["RMSE_TE_VEL", "RMSE_TE_XYZ", "RMSE_TE_RPY", "Score", "Omega_Jitter", "Motor_Jitter"]:
             mean_str = means[m].apply(lambda x: f"{x:.2f}")
             std_str = stds[m].apply(lambda x: f"{x:.2f}")
         else:
@@ -242,8 +258,7 @@ def plot_rmse_bars_per_scenario_type(df, output_dir):
         ax.set_title(f"Anomaly Comparison for Scenario: {SCENARIO_PRETTY_NAMES.get(scen, scen)}", y=1.35)
         ax.grid(True, axis='y', zorder=0)
         ax.set_axisbelow(True)
-        sns.move_legend(ax, "lower center", bbox_to_anchor=(0.5, 1.05), ncol=5, title=None, frameon=False)
-        
+        sns.move_legend(ax, "lower center", bbox_to_anchor=(0.5, 0.975), ncol=3, title=None, frameon=False)        
         scen_file = scen.replace("_", " ")
         plt.savefig(os.path.join(save_dir, f"Bar_Scen_{scen_file}.pdf"))
         plt.close()
@@ -996,11 +1011,26 @@ def main():
     
     set_paper_style()
     
+    # --- AGENT SELECTION ---
+    # Hier kannst du definieren, welche Agenten in den Plots erscheinen sollen.
+    # "INDI" sollte für den Vergleich meistens dabei sein.
+    SELECTED_AGENTS = [
+        "INDI", 
+        #"RL Add. (Aware)", 
+        "RL Add. (Blind)", 
+        "RL Geo. (Aware)",
+        #"RL Geo. (Blind)", 
+        "FTC Motor (Blind)",
+        "RL Def (SB3Param)" # Beispiel für einen 'Zappler' im Vergleich
+    ]
+    # Falls SELECTED_AGENTS = None, werden alle Agenten aus der CSV genommen.
+    # -----------------------
+
     if os.path.exists(input_csv):
         print("Plotting Script: Run")
         print("   Initialize")
         print("   Load Data")
-        df = load_and_filter_data(input_csv)
+        df = load_and_filter_data(input_csv, selected_agents=SELECTED_AGENTS)
         
         # 1. Table
         generate_latex_table(df, output_dir)

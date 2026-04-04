@@ -67,7 +67,8 @@ def calculate_metrics_physics(df, motor_min, motor_range, ctrl_freq=125.0, filen
         'rmse_vel': 999.0,
         'rmse_te_vel': 999.0,
         'energy': 0.0, 
-        'jitter': 0.0, 
+        'motor_jitter': 0.0,
+        'omega_jitter': 0.0,
         'flight_time': 0.0,
         'stability': 0.0,
         'max_wp': 0,
@@ -191,7 +192,15 @@ def calculate_metrics_physics(df, motor_min, motor_range, ctrl_freq=125.0, filen
     if total_waypoints is not None and total_waypoints > 0:
         metrics['wcr'] = min(metrics['max_wp'] / total_waypoints, 1.0) if metrics['success'] < 0.5 else 1.0
 
-    # --- 4. Energy & Jitter ---
+    # --- 6. Jitter (Unruhe/Rauschen) ---
+    # Omega Jitter: Wie stark zittern die Winkelgeschwindigkeiten?
+    if 'agent_omega' in df.columns:
+        omega = parse_vector_col(df['agent_omega'])
+        if len(omega) > 1:
+            # Wir nutzen die mittlere absolute Differenz als Maß für Hochfrequenz-Zittern
+            metrics['omega_jitter'] = np.mean(np.square(np.diff(omega, axis=0))) #abs to square
+
+    # Motor Jitter & Energy
     motors_norm = None
     if 'motor_signal_measured_rps' in df.columns:
         motors = parse_vector_col(df['motor_signal_measured_rps'])
@@ -207,41 +216,17 @@ def calculate_metrics_physics(df, motor_min, motor_range, ctrl_freq=125.0, filen
     if motors_norm is not None and len(motors_norm) > 0:
         metrics['energy'] = np.mean(np.square(motors_norm))
         if len(motors_norm) > 1:
-            metrics['jitter'] = np.mean(np.square(np.diff(motors_norm, axis=0)))
+            # Motor Jitter: Maß für die Belastung der ESCs/Motoren
+            metrics['motor_jitter'] = np.mean(np.square(np.diff(motors_norm, axis=0))) # abs to square
             
     return metrics
 
-def calculate_composite_score2(df, score_norm="min-max"):
+def calculate_composite_score_old(df):
     if df.empty: return df
     df = df.copy()
-    for col in ['rmse_te_xyz', 'rmse_te_rpy', 'rmse_te_vel']:
-        if col in df.columns:
-            norm_col = f"norm_{col.lower()}"
-            df[norm_col] = 0.0
-
-            for mission in df['Mission'].unique():
-                mask = df['Mission'] == mission
-                vals = df.loc[mask, col]
-                min_v, max_v = vals.min(), vals.max()
-                if score_norm == "min-max":
-                    if max_v > min_v:
-                        df.loc[mask, norm_col] = (vals - min_v) / (max_v - min_v)
-                elif score_norm == "max-norm":
-                    if max_v > 0:
-                        df.loc[mask, norm_col] = vals / max_v
-                elif score_norm == "min-norm":
-                    if min_v:
-                        df.loc[mask, norm_col] = (vals / min_v)-1.0
-    
-    df['Score'] = 2*df['Stability'] + df.get('WCR', 0) - df.get('norm_rmse_te_vel', 0) - df.get('norm_rmse_te_xyz', 0) - df.get('norm_rmse_te_rpy', 0)
-    return df
-
-###
-
-def calculate_composite_score(df):
-    if df.empty: return df
-    df = df.copy()
-    for col in ['RMSE_TE_XYZ', 'RMSE_TE_RPY', 'RMSE_TE_VEL']:
+    # Metriken, bei denen kleiner besser ist (Fehler & Jitter)
+    cols_to_norm = ['RMSE_TE_XYZ', 'RMSE_TE_RPY', 'RMSE_TE_VEL', 'Omega_Jitter', 'Motor_Jitter']
+    for col in cols_to_norm:
         if col in df.columns:
             norm_col = f"NORM_{col}"
             df[norm_col] = 0.0
@@ -251,7 +236,65 @@ def calculate_composite_score(df):
                 min_v, max_v = vals.min(), vals.max()
                 if max_v > min_v:
                     df.loc[mask, norm_col] = (vals - min_v) / (max_v - min_v)
+
+    #cols_to_norm = {'RMSE_TE_XYZ':2, 'RMSE_TE_RPY': 25, 'RMSE_TE_VEL': 2.0, 'Omega_Jitter':0.1, 'Motor_Jitter':0.1}
+    #for col in cols_to_norm:
+    #    if col in df.columns:
+    #        norm_col = f"NORM_{col}"
+    #        df[norm_col] = 0.0
+    #        for mission in df['Mission'].unique():
+    #            mask = df['Mission'] == mission
+    #            vals = df.loc[mask, col]
+    #            df.loc[mask, norm_col] = np.clip(np.abs(vals) / cols_to_norm[col], 0, 1)
     
-    df['Score'] = 2*df['Stability'] + df.get('WCR', 0) - df.get('NORM_RMSE_TE_XYZ', 0) - df.get('NORM_RMSE_TE_VEL', 0) - df.get('NORM_RMSE_TE_RPY', 0)
+    # Finaler Score: 
+    # + Bonus für Überleben (Stability) und Missionsfortschritt (WCR)
+    # - Abzug für normierte Tracking-Fehler
+    # - Abzug für normierte Unruhe (Jitter)
+    df['Score'] = (1 * df['Stability'] + 
+                   1 * df.get('WCR', 0) - 
+                   0.2 * df.get('NORM_RMSE_TE_XYZ', 0) - 
+                   1.0 * df.get('NORM_RMSE_TE_VEL', 0) - # vel counts doubled as main control target
+                   0.4 * df.get('NORM_RMSE_TE_RPY', 0) -
+                   0.2 * df.get('NORM_Omega_Jitter', 0) - 
+                   0.2 * df.get('NORM_Motor_Jitter', 0))
     return df
 
+
+def calculate_composite_score(df):
+    if df.empty: return df
+    df = df.copy()
+
+    # Bestehende NORM- oder Score-Spalten entfernen, falls die Funktion 
+    # erneut auf ein bereits aggregiertes DF angewendet wird
+    cols_to_drop = [c for c in df.columns if c.startswith('NORM_') or c == 'Score']
+    df = df.drop(columns=cols_to_drop, errors='ignore')
+
+    # 1. Absolute Limits definieren
+    limits = {
+        'RMSE_TE_VEL': 2.5,   
+        'RMSE_TE_XYZ': 2.5,   
+        'RMSE_TE_RPY': 35.0,  
+        'Omega_Jitter': 0.1,  
+        'Motor_Jitter': 0.05
+    }
+
+    for col, limit in limits.items():
+        if col in df.columns:
+            norm_col = f"NORM_{col}"  
+            # Deine Formel: (Ist/Limit)^2 clipped auf [0, 2] und um -1 verschoben
+            # Range: -1.0 (perfekt) bis +1.0 (sehr schlecht)
+            df[norm_col] = np.clip((df[col] / limit)**2, 0, 1)
+    
+    # 2. Finaler Score
+    # Da NORM bei guten Werten negativ ist (-1), führt das Minus vor dem Gewicht zu einem Bonus.
+    df['Score'] = (
+        0.5 * df['Stability'] + 
+        0.5 * df.get('WCR', 0) - 
+        0.4 * df.get('NORM_RMSE_TE_VEL', 0) - # Hauptziel
+        0.1 * df.get('NORM_RMSE_TE_XYZ', 0) - 
+        0.2 * df.get('NORM_RMSE_TE_RPY', 0) -
+        0.15 * df.get('NORM_Omega_Jitter', 0) -  
+        0.15 * df.get('NORM_Motor_Jitter', 0)
+    )
+    return df

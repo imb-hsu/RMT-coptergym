@@ -458,8 +458,10 @@ class RMT_Base(gym.Env, ABC):
             raise ValueError(f"Error: Unsupported action_space_type: {self.action_space_type}")
 
     def _get_current_motor_loss_vector(self):
+                   
         if not self.anomaly.is_active or self.anomaly.current_anomaly_df is None:
             return np.zeros(8, dtype=np.float64)
+        
         anomaly_df = self.anomaly.current_anomaly_df
         # Find the row where 'time' is less than or equal to the current clock time
         # and take the last such row (most recent anomaly state).
@@ -469,17 +471,19 @@ class RMT_Base(gym.Env, ABC):
         idx = max(0, idx)
         motor_loss_cols = [f'motorloss_{i+1}' for i in range(8)]
         current_loss_row = anomaly_df.iloc[idx][motor_loss_cols]
+
         return current_loss_row.values.astype(np.float64)           
     
     def _set_dll_inputs(self):
         """Apply action.cmd to the appropriate motors based on defects."""
         #Check for Changes/Updates on the anomaly and if action.cmd is available
 
+        # Update the motorloss states whenever i update teh dll based on anomaly_pool and self.clock
+        self.anomaly.motorloss_vector = self._get_current_motor_loss_vector() 
+        for i in range(8):
+            self.sim.failures.motor_loss[i] = self.anomaly.motorloss_vector[i] # directly affects the sim bus!
+
         if self.action.cmd is not None:
-            self.anomaly.motorloss_vector = self._get_current_motor_loss_vector() 
-            for i in range(8):
-                self.sim.failures.motor_loss[i] = self.anomaly.motorloss_vector[i] # directly affects the sim bus!
-            # Assign inputs based on defect state - using a scaling dependency
             effective_motor_cmds = self.action.cmd  # priro with *(1-self.anomaly.motorloss_vector), but now we have sim bus to do that
             for i in range(8):
                 self.sim.w_cmd [i] = effective_motor_cmds[i]
@@ -626,7 +630,11 @@ class RMT_Base(gym.Env, ABC):
         Updates internal simulation state variables.
         """
         # Store old action command for smoothness calculation in RL layer
-        self.action.cmd_old = self.action.cmd.copy() 
+        if self.action.cmd is not None:
+            self.action.cmd_old = self.action.cmd.copy() 
+        else:
+            self.action.cmd_old = np.zeros_like(self.action.cmd)
+
 
         # Transform agent's action to DLL commands
         self._transform_action(new_action)
@@ -756,6 +764,7 @@ class RMT_Base(gym.Env, ABC):
         # --- Robust NaN Handling ---
         # If the input value is NaN (e.g., an undefined target), return a neutral
         # zero vector. This prevents NaN values from propagating into the agent's policy.
+        value = np.asarray(value, dtype=np.float32)  # None → nan
         if np.any(np.isnan(value)):
             return np.zeros(value.shape, dtype=np.float32)
 

@@ -74,6 +74,7 @@ def run_indi_benchmark(output_base_dir: str, eval_mission_pool: list[pd.DataFram
             print(f"  > Benchmarking Mission: {mission_name} ...")
             
             # --- Initialisiere die Env für diese eine Mission ---
+
             single_mission_pool = [mission_df]
             current_env_kwargs = env_kwargs_base.copy()
             current_env_kwargs.update({
@@ -130,7 +131,7 @@ if __name__ == '__main__':
         project_root = '.' # Fallback für interaktive Ausführung
         
     # Define the output directory
-    output_dir = os.path.join(project_root, 'data', 'INDI_test')
+    output_dir = os.path.join(project_root, 'data', 'INDI')
 
     # --- 1. Lade den Trajektorien-Evaluations-Pool ---
     loader = TrajectoryDataLoader(base_data_dir=os.path.join(project_root, 'data', 'trajectories'), anomaly_base_data_dir = os.path.join(project_root, 'data', 'anomalies'))
@@ -147,18 +148,27 @@ if __name__ == '__main__':
     eval_anomaly_pool_representative = []
     all_available_anomaly_types = loader.available_anomaly_datasets
     
+    # Debug-Ordner für extrahierte Anomalien erstellen
+    debug_anom_dir = os.path.join(output_dir, "_debug_representative_anomalies")
+    os.makedirs(debug_anom_dir, exist_ok=True)
+
     print(f"Erstelle repräsentativen Anomalie-Pool aus: {sorted(all_available_anomaly_types)}")
 
     for anomaly_name in sorted(all_available_anomaly_types):
         if anomaly_name in loader.anomaly_datasets:
             all_files_for_type = loader.anomaly_datasets[anomaly_name]
             
-            # WICHTIG: Nimm immer nur die erste Datei (Index 0) als Repräsentanten
             if all_files_for_type:
-                first_anomaly_file = all_files_for_type[0]
-                df = pd.read_csv(first_anomaly_file)
-                df['anomaly_name'] = anomaly_name # Stellen Sie sicher, dass der Name gesetzt ist
+                # Suche explizit nach '0000' (unsere deterministische Eval-Sequenz)
+                representative_file = next((f for f in all_files_for_type if "0000" in os.path.basename(f)), all_files_for_type[0])
+                
+                print(f"  - Loading Representative for {anomaly_name}: {os.path.basename(representative_file)}")
+                df = pd.read_csv(representative_file)
+                df['anomaly_name'] = anomaly_name # WICHTIG: Name für die Gruppierung setzen
                 eval_anomaly_pool_representative.append(df)
+                
+                # Debug-Speicherung
+                df.to_csv(os.path.join(debug_anom_dir, f"{anomaly_name}_ref.csv"), index=False)
             else:
                 print(f"  Warnung: Keine Anomalie-Dateien für Typ '{anomaly_name}' gefunden.")
         else:

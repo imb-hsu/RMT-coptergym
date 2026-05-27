@@ -131,7 +131,7 @@ if __name__ == '__main__':
         project_root = '.' # Fallback für interaktive Ausführung
         
     # Define the output directory
-    output_dir = os.path.join(project_root, 'data', 'INDI')
+    output_dir = os.path.join(project_root, 'data', 'INDI_outs')
 
     # --- 1. Lade den Trajektorien-Evaluations-Pool ---
     loader = TrajectoryDataLoader(base_data_dir=os.path.join(project_root, 'data', 'trajectories'), anomaly_base_data_dir = os.path.join(project_root, 'data', 'anomalies'))

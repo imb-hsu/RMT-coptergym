@@ -1052,3 +1052,11 @@ class PrevZCX_RMT_FDM_DLL_FrameWork_FCS_RT_T(ctypes.Structure):
         ("Delay15_Reset_ZCE", ZCSigState),
         ("Delay_Reset_ZCE_pegz", ZCSigState)
     ]    
+
+
+class fc_att_euler_cmd_Bus(ctypes.Structure):
+    _fields_ = [
+        ("Phi_cmd_rad", real_T),
+        ("Theta_cmd_rad", real_T),
+        ("Psi_dot_cmd_radDs", real_T)
+    ]

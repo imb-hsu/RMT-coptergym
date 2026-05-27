@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'RMT_FDM_DLL_FrameWork_FCS_RT'.
  *
- * Model version                  : 11.39
+ * Model version                  : 11.41
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Mon Mar 30 13:54:53 2026
+ * C/C++ source code generated on : Mon May 11 09:57:18 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -34,6 +34,7 @@
 #include "RMT_FDM_DLL_FrameWork_FCS_RT_types.h"
 #include "fc_pilot_cmd_Bus.h"
 #include "RMT_FDM_RT.h"
+#include "rtGetInf.h"
 #include "rtGetNaN.h"
 #include "model_reference_types.h"
 #include <string.h>
@@ -89,34 +90,34 @@ typedef struct {
   fc_ctrl_cmd_Bus fc_ctrl_cmd;         /* '<S11>/Bus Assignment' (Output 1) */
   Controller_Commands_Bus Contoller_cmd_faults;/* '<S3>/Bus Creaor' (Output 1) */
   Controller_Commands_Bus RT4;         /* '<Root>/RT4' (Output 1) */
-  Controller_Commands_Bus Switch;      /* '<Root>/Switch' (Output 1) */
+  Controller_Commands_Bus Controller_Commands;/* '<Root>/Switch' (Output 1) */
   real_T RT7[8];                       /* '<Root>/RT7' (Output 1) */
   real_T RT6[8];                       /* '<Root>/RT6' (Output 1) */
-  real_T Product2[3];                  /* '<S2>/Product2' (Output 1) */
-  real_T Product[3];                   /* '<S2>/Product' (Output 1) */
+  real_T Product2[3];                  /* '<S1>/Product2' (Output 1) */
+  real_T Product[3];                   /* '<S1>/Product' (Output 1) */
 } B_RMT_FDM_DLL_FrameWork_FCS_RT_T;
 
 /* Block states (default storage) for system '<Root>' */
 typedef struct {
-  real_T Delay_DSTATE;                 /* '<S2>/Delay' (DWork 1) */
-  real_T Delay1_DSTATE;                /* '<S2>/Delay1' (DWork 1) */
-  real_T Delay2_DSTATE;                /* '<S2>/Delay2' (DWork 1) */
-  real_T Delay3_DSTATE;                /* '<S2>/Delay3' (DWork 1) */
-  real_T Delay16_DSTATE;               /* '<S2>/Delay16' (DWork 1) */
-  real_T Delay17_DSTATE;               /* '<S2>/Delay17' (DWork 1) */
-  real_T Delay18_DSTATE;               /* '<S2>/Delay18' (DWork 1) */
-  real_T Delay4_DSTATE;                /* '<S2>/Delay4' (DWork 1) */
-  real_T Delay5_DSTATE;                /* '<S2>/Delay5' (DWork 1) */
-  real_T Delay6_DSTATE;                /* '<S2>/Delay6' (DWork 1) */
-  real_T Delay7_DSTATE;                /* '<S2>/Delay7' (DWork 1) */
-  real_T Delay8_DSTATE;                /* '<S2>/Delay8' (DWork 1) */
-  real_T Delay9_DSTATE;                /* '<S2>/Delay9' (DWork 1) */
-  real_T Delay10_DSTATE;               /* '<S2>/Delay10' (DWork 1) */
-  real_T Delay11_DSTATE;               /* '<S2>/Delay11' (DWork 1) */
-  real_T Delay12_DSTATE;               /* '<S2>/Delay12' (DWork 1) */
-  real_T Delay13_DSTATE;               /* '<S2>/Delay13' (DWork 1) */
-  real_T Delay14_DSTATE;               /* '<S2>/Delay14' (DWork 1) */
-  real_T Delay15_DSTATE;               /* '<S2>/Delay15' (DWork 1) */
+  real_T Delay_DSTATE;                 /* '<S1>/Delay' (DWork 1) */
+  real_T Delay1_DSTATE;                /* '<S1>/Delay1' (DWork 1) */
+  real_T Delay2_DSTATE;                /* '<S1>/Delay2' (DWork 1) */
+  real_T Delay3_DSTATE;                /* '<S1>/Delay3' (DWork 1) */
+  real_T Delay16_DSTATE;               /* '<S1>/Delay16' (DWork 1) */
+  real_T Delay17_DSTATE;               /* '<S1>/Delay17' (DWork 1) */
+  real_T Delay18_DSTATE;               /* '<S1>/Delay18' (DWork 1) */
+  real_T Delay4_DSTATE;                /* '<S1>/Delay4' (DWork 1) */
+  real_T Delay5_DSTATE;                /* '<S1>/Delay5' (DWork 1) */
+  real_T Delay6_DSTATE;                /* '<S1>/Delay6' (DWork 1) */
+  real_T Delay7_DSTATE;                /* '<S1>/Delay7' (DWork 1) */
+  real_T Delay8_DSTATE;                /* '<S1>/Delay8' (DWork 1) */
+  real_T Delay9_DSTATE;                /* '<S1>/Delay9' (DWork 1) */
+  real_T Delay10_DSTATE;               /* '<S1>/Delay10' (DWork 1) */
+  real_T Delay11_DSTATE;               /* '<S1>/Delay11' (DWork 1) */
+  real_T Delay12_DSTATE;               /* '<S1>/Delay12' (DWork 1) */
+  real_T Delay13_DSTATE;               /* '<S1>/Delay13' (DWork 1) */
+  real_T Delay14_DSTATE;               /* '<S1>/Delay14' (DWork 1) */
+  real_T Delay15_DSTATE;               /* '<S1>/Delay15' (DWork 1) */
   real_T UD_DSTATE[3];                 /* '<S32>/UD' (DWork 1) */
   real_T Delay_DSTATE_oj24[10];        /* '<S5>/Delay' (DWork 1) */
   real_T Phi_Ref_DSTATE;               /* '<S47>/Phi_Ref' (DWork 1) */
@@ -157,25 +158,25 @@ typedef struct {
                                 /* '<S10>/Discrete-Time Integrator' (DWork 2) */
   uint8_T DiscreteTimeIntegrator_IC_LOADING;
                                 /* '<S10>/Discrete-Time Integrator' (DWork 3) */
-  boolean_T icLoad;                    /* '<S2>/Delay' (DWork 2) */
-  boolean_T icLoad_hvp0;               /* '<S2>/Delay1' (DWork 2) */
-  boolean_T icLoad_agwh;               /* '<S2>/Delay2' (DWork 2) */
-  boolean_T icLoad_k4aw;               /* '<S2>/Delay3' (DWork 2) */
-  boolean_T icLoad_finj;               /* '<S2>/Delay16' (DWork 2) */
-  boolean_T icLoad_eux1;               /* '<S2>/Delay17' (DWork 2) */
-  boolean_T icLoad_mxgu;               /* '<S2>/Delay18' (DWork 2) */
-  boolean_T icLoad_pbo0;               /* '<S2>/Delay4' (DWork 2) */
-  boolean_T icLoad_dtzm;               /* '<S2>/Delay5' (DWork 2) */
-  boolean_T icLoad_mfcp;               /* '<S2>/Delay6' (DWork 2) */
-  boolean_T icLoad_js0i;               /* '<S2>/Delay7' (DWork 2) */
-  boolean_T icLoad_doan;               /* '<S2>/Delay8' (DWork 2) */
-  boolean_T icLoad_mzf4;               /* '<S2>/Delay9' (DWork 2) */
-  boolean_T icLoad_chzd;               /* '<S2>/Delay10' (DWork 2) */
-  boolean_T icLoad_giyv;               /* '<S2>/Delay11' (DWork 2) */
-  boolean_T icLoad_lwdp;               /* '<S2>/Delay12' (DWork 2) */
-  boolean_T icLoad_bu4u;               /* '<S2>/Delay13' (DWork 2) */
-  boolean_T icLoad_atsy;               /* '<S2>/Delay14' (DWork 2) */
-  boolean_T icLoad_nbvc;               /* '<S2>/Delay15' (DWork 2) */
+  boolean_T icLoad;                    /* '<S1>/Delay' (DWork 2) */
+  boolean_T icLoad_hvp0;               /* '<S1>/Delay1' (DWork 2) */
+  boolean_T icLoad_agwh;               /* '<S1>/Delay2' (DWork 2) */
+  boolean_T icLoad_k4aw;               /* '<S1>/Delay3' (DWork 2) */
+  boolean_T icLoad_finj;               /* '<S1>/Delay16' (DWork 2) */
+  boolean_T icLoad_eux1;               /* '<S1>/Delay17' (DWork 2) */
+  boolean_T icLoad_mxgu;               /* '<S1>/Delay18' (DWork 2) */
+  boolean_T icLoad_pbo0;               /* '<S1>/Delay4' (DWork 2) */
+  boolean_T icLoad_dtzm;               /* '<S1>/Delay5' (DWork 2) */
+  boolean_T icLoad_mfcp;               /* '<S1>/Delay6' (DWork 2) */
+  boolean_T icLoad_js0i;               /* '<S1>/Delay7' (DWork 2) */
+  boolean_T icLoad_doan;               /* '<S1>/Delay8' (DWork 2) */
+  boolean_T icLoad_mzf4;               /* '<S1>/Delay9' (DWork 2) */
+  boolean_T icLoad_chzd;               /* '<S1>/Delay10' (DWork 2) */
+  boolean_T icLoad_giyv;               /* '<S1>/Delay11' (DWork 2) */
+  boolean_T icLoad_lwdp;               /* '<S1>/Delay12' (DWork 2) */
+  boolean_T icLoad_bu4u;               /* '<S1>/Delay13' (DWork 2) */
+  boolean_T icLoad_atsy;               /* '<S1>/Delay14' (DWork 2) */
+  boolean_T icLoad_nbvc;               /* '<S1>/Delay15' (DWork 2) */
   boolean_T FCS_INDI_Control_MODE;     /* '<Root>/FCS_INDI_Control' (DWork 1) */
   MdlrefDW_RMT_FDM_RT_T RMT_Plant_InstanceData;/* '<Root>/RMT_Plant' (DWork 1) */
 } DW_RMT_FDM_DLL_FrameWork_FCS_RT_T;
@@ -197,31 +198,31 @@ typedef struct {
 
 /* Zero-crossing (trigger) state */
 typedef struct {
-  ZCSigState Delay_Reset_ZCE;          /* '<S2>/Delay' */
-  ZCSigState Delay1_Reset_ZCE;         /* '<S2>/Delay1' */
-  ZCSigState Delay2_Reset_ZCE;         /* '<S2>/Delay2' */
-  ZCSigState Delay3_Reset_ZCE;         /* '<S2>/Delay3' */
-  ZCSigState Delay16_Reset_ZCE;        /* '<S2>/Delay16' */
-  ZCSigState Delay17_Reset_ZCE;        /* '<S2>/Delay17' */
-  ZCSigState Delay18_Reset_ZCE;        /* '<S2>/Delay18' */
-  ZCSigState Delay4_Reset_ZCE;         /* '<S2>/Delay4' */
-  ZCSigState Delay5_Reset_ZCE;         /* '<S2>/Delay5' */
-  ZCSigState Delay6_Reset_ZCE;         /* '<S2>/Delay6' */
-  ZCSigState Delay7_Reset_ZCE;         /* '<S2>/Delay7' */
-  ZCSigState Delay8_Reset_ZCE;         /* '<S2>/Delay8' */
-  ZCSigState Delay9_Reset_ZCE;         /* '<S2>/Delay9' */
-  ZCSigState Delay10_Reset_ZCE;        /* '<S2>/Delay10' */
-  ZCSigState Delay11_Reset_ZCE;        /* '<S2>/Delay11' */
-  ZCSigState Delay12_Reset_ZCE;        /* '<S2>/Delay12' */
-  ZCSigState Delay13_Reset_ZCE;        /* '<S2>/Delay13' */
-  ZCSigState Delay14_Reset_ZCE;        /* '<S2>/Delay14' */
-  ZCSigState Delay15_Reset_ZCE;        /* '<S2>/Delay15' */
+  ZCSigState Delay_Reset_ZCE;          /* '<S1>/Delay' */
+  ZCSigState Delay1_Reset_ZCE;         /* '<S1>/Delay1' */
+  ZCSigState Delay2_Reset_ZCE;         /* '<S1>/Delay2' */
+  ZCSigState Delay3_Reset_ZCE;         /* '<S1>/Delay3' */
+  ZCSigState Delay16_Reset_ZCE;        /* '<S1>/Delay16' */
+  ZCSigState Delay17_Reset_ZCE;        /* '<S1>/Delay17' */
+  ZCSigState Delay18_Reset_ZCE;        /* '<S1>/Delay18' */
+  ZCSigState Delay4_Reset_ZCE;         /* '<S1>/Delay4' */
+  ZCSigState Delay5_Reset_ZCE;         /* '<S1>/Delay5' */
+  ZCSigState Delay6_Reset_ZCE;         /* '<S1>/Delay6' */
+  ZCSigState Delay7_Reset_ZCE;         /* '<S1>/Delay7' */
+  ZCSigState Delay8_Reset_ZCE;         /* '<S1>/Delay8' */
+  ZCSigState Delay9_Reset_ZCE;         /* '<S1>/Delay9' */
+  ZCSigState Delay10_Reset_ZCE;        /* '<S1>/Delay10' */
+  ZCSigState Delay11_Reset_ZCE;        /* '<S1>/Delay11' */
+  ZCSigState Delay12_Reset_ZCE;        /* '<S1>/Delay12' */
+  ZCSigState Delay13_Reset_ZCE;        /* '<S1>/Delay13' */
+  ZCSigState Delay14_Reset_ZCE;        /* '<S1>/Delay14' */
+  ZCSigState Delay15_Reset_ZCE;        /* '<S1>/Delay15' */
   ZCSigState Delay_Reset_ZCE_pegz;     /* '<S5>/Delay' */
 } PrevZCX_RMT_FDM_DLL_FrameWork_FCS_RT_T;
 
 /* Invariant block signals (default storage) */
 typedef struct {
-  const real_T Reshape1[3];            /* '<S2>/Reshape1' (Output 1) */
+  const real_T Reshape1[3];            /* '<S1>/Reshape1' (Output 1) */
   const real_T VectorConcatenate[3];  /* '<S7>/Vector Concatenate' (Output 1) */
   const real_T VectorConcatenate1[3];/* '<S8>/Vector Concatenate1' (Output 1) */
   const real_T VectorConcatenate2[3];/* '<S9>/Vector Concatenate2' (Output 1) */
@@ -328,6 +329,8 @@ extern const Simulation_Control_Bus
 extern const States_Init_Bus RMT_FDM_DLL_FrameWork_FCS_RT_rtZStates_Init_Bus;/* States_Init_Bus ground */
 extern const fc_pilot_cmd_Bus RMT_FDM_DLL_FrameWork_FCS_RT_rtZfc_pilot_cmd_Bus;/* fc_pilot_cmd_Bus ground */
 extern const Failure_Bus RMT_FDM_DLL_FrameWork_FCS_RT_rtZFailure_Bus;/* Failure_Bus ground */
+extern const Controller_Commands_Bus
+  RMT_FDM_DLL_FrameWork_FCS_RT_rtZController_Commands_Bus;/* Controller_Commands_Bus ground */
 extern const fc_est_Bus RMT_FDM_DLL_FrameWork_FCS_RT_rtZfc_est_Bus;/* fc_est_Bus ground */
 extern const Vehicle_Bus RMT_FDM_DLL_FrameWork_FCS_RT_rtZVehicle_Bus;/* Vehicle_Bus ground */
 extern const Measurements_Bus RMT_FDM_DLL_FrameWork_FCS_RT_rtZMeasurements_Bus;/* Measurements_Bus ground */
@@ -344,7 +347,8 @@ extern RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *RMT_FDM_DLL_FrameWork_FCS_RT
    *RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures, Vehicle_Bus
    *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle, Measurements_Bus
    *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements, fc_est_Bus
-   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation, Controller_Commands_Bus
+   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
 extern void RMT_FDM_DLL_FrameWork_FCS_RT_initialize
   (RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *const RMT_FDM_DLL_FrameWork_FCS_RT_M);
 extern void RMT_FDM_DLL_FrameWork_FCS_RT_step
@@ -356,7 +360,8 @@ extern void RMT_FDM_DLL_FrameWork_FCS_RT_step
    *RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures, Vehicle_Bus
    *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle, Measurements_Bus
    *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements, fc_est_Bus
-   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation, Controller_Commands_Bus
+   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
 extern void RMT_FDM_DLL_FrameWork_FCS_RT_terminate
   (RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T * RMT_FDM_DLL_FrameWork_FCS_RT_M);
 
@@ -375,8 +380,8 @@ extern void RMT_FDM_DLL_FrameWork_FCS_RT_terminate
  * Here is the system hierarchy for this model
  *
  * '<Root>' : 'RMT_FDM_DLL_FrameWork_FCS_RT'
- * '<S1>'   : 'RMT_FDM_DLL_FrameWork_FCS_RT/Controller_Commands'
- * '<S2>'   : 'RMT_FDM_DLL_FrameWork_FCS_RT/Data_Mapping'
+ * '<S1>'   : 'RMT_FDM_DLL_FrameWork_FCS_RT/Data_Mapping'
+ * '<S2>'   : 'RMT_FDM_DLL_FrameWork_FCS_RT/Direct_Actuators'
  * '<S3>'   : 'RMT_FDM_DLL_FrameWork_FCS_RT/ESC'
  * '<S4>'   : 'RMT_FDM_DLL_FrameWork_FCS_RT/External_Inputs'
  * '<S5>'   : 'RMT_FDM_DLL_FrameWork_FCS_RT/FCS_INDI_Control'

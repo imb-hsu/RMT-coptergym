@@ -80,6 +80,8 @@ class EvaluationPlots:
         motor_cmds = self._parse_vector_col(logdata_df.get('action_cmd', pd.Series([np.nan] * len(times))))
         motor_signals = self._parse_vector_col(logdata_df.get('motor_signal_measured_rps', pd.Series([np.nan] * len(times))))
         
+        motor_INDIcmds = self._parse_vector_col(logdata_df.get('INDI_cmd', pd.Series([np.nan] * len(times))))
+
         distance = logdata_df.get('distance_current', pd.Series([np.nan] * len(times)))
         error_pos = self._parse_vector_col(logdata_df.get('error_pos', pd.Series([np.nan] * len(times))))
         error_vel = self._parse_vector_col(logdata_df.get('error_vel_c', pd.Series([np.nan] * len(times))))
@@ -136,8 +138,8 @@ class EvaluationPlots:
         self.plot_accel(times, accel)
 
         # --- Motorsignals Over Time Plot ---
-        if not np.isnan(motor_signals).all() or not np.isnan(motor_cmds).all():
-            self.plot_motor_signals(times, motor_signals, motor_cmds)
+        if not np.isnan(motor_signals).all() or not np.isnan(motor_cmds).all() or not np.isnan(motor_INDIcmds).all():
+            self.plot_motor_signals(times, motor_signals, motor_cmds, motor_INDIcmds)
 
         # --- Error/Progress Over Time Plot ---
         self.plot_progress(times, distance, error_pos, velocity, error_vel)
@@ -299,7 +301,7 @@ class EvaluationPlots:
         plt.savefig(os.path.join(self.save_dir, "6_Accel_Over_Time.png"))
         plt.close()
 
-    def plot_motor_signals(self, times, motor_signals, motor_cmds):
+    def plot_motor_signals(self, times, motor_signals, motor_cmds, motor_INDIcmds):
         fig, axs = plt.subplots(4, 1, figsize=(12, 12), sharex=True)
         fig.suptitle("Motorsignale (Soll vs. Ist)")
     
@@ -319,6 +321,10 @@ class EvaluationPlots:
             if not np.all(np.isnan(motor_signals)):
                 axs[i].plot(times, motor_signals[:, idx1], label=f"Ist Ober", color="blue")
                 axs[i].plot(times, motor_signals[:, idx2], label=f"Ist Unter", color="cyan")
+            # INDI-Soll-Werte
+            if not np.all(np.isnan(motor_INDIcmds)):
+                axs[i].plot(times, motor_INDIcmds[:, idx1], label=f"INDI Cmd Ober", color="green", alpha=0.7, ls=':')
+                axs[i].plot(times, motor_INDIcmds[:, idx2], label=f"INDI Cmd Unter", color="purple", alpha=0.7, ls=':')
             
             axs[i].set_ylabel("Drehzahl [rad/s]")
             axs[i].legend(ncol=2)

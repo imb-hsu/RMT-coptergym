@@ -17,3 +17,9 @@ opencv-python
 
 # Dependencies for the development environment
 ipykernel
+
+# Video libraries to create visualization
+pyvista
+imageio
+imageio[ffmpeg]
+imageio[pyav]

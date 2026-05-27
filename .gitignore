@@ -2,6 +2,7 @@
 __pycache__/
 *.pyc
 *.egg-info/
+Anaconda3-*
 
 #Dont Commit actual Data
 /saves/*

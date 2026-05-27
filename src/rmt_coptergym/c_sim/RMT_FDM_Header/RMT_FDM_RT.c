@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'RMT_FDM_RT'.
  *
- * Model version                  : 11.18
+ * Model version                  : 11.19
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Mon Mar 30 13:53:24 2026
+ * C/C++ source code generated on : Mon May 11 09:56:01 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -1026,7 +1026,6 @@ void RMT_FDM_RT(RT_MODEL_RMT_FDM_RT_T * const RMT_FDM_RT_M, const
   real_T b_VectorConcatenate2_ofdc[2];
   real_T Product_hwmn_tmp;
   real_T Product_mmjp_tmp;
-  real_T Product_p0uf_tmp;
   real_T acc1;
   real_T acc1_0;
   real_T acc1_1;
@@ -8460,20 +8459,19 @@ void RMT_FDM_RT(RT_MODEL_RMT_FDM_RT_T * const RMT_FDM_RT_M, const
   localB->Product_oxzs = b_Reshape_jgsm[0] * (real_T)
     (rtu_Simulation_Control->flg_Run && rtu_Simulation_Control->flg_Run_vel_x);
 
-  /* DataTypeConversion: '<S22>/Data Type Conversion' incorporates:
-   *  DataTypeConversion: '<S23>/Data Type Conversion'
-   *  Logic: '<S22>/Logical Operator'
-   */
-  Product_p0uf_tmp = (real_T)(rtu_Simulation_Control->flg_Run &&
-    rtu_Simulation_Control->flg_Run_vel_y);
-
   /* Product: '<S22>/Product' incorporates:
    *  DataTypeConversion: '<S22>/Data Type Conversion'
+   *  Logic: '<S22>/Logical Operator'
    */
-  localB->Product_p0uf = b_Reshape_jgsm[1] * Product_p0uf_tmp;
+  localB->Product_p0uf = b_Reshape_jgsm[1] * (real_T)
+    (rtu_Simulation_Control->flg_Run && rtu_Simulation_Control->flg_Run_vel_y);
 
-  /* Product: '<S23>/Product' */
-  localB->Product_neht = b_Reshape_jgsm[2] * Product_p0uf_tmp;
+  /* Product: '<S23>/Product' incorporates:
+   *  DataTypeConversion: '<S23>/Data Type Conversion'
+   *  Logic: '<S23>/Logical Operator'
+   */
+  localB->Product_neht = b_Reshape_jgsm[2] * (real_T)
+    (rtu_Simulation_Control->flg_Run && rtu_Simulation_Control->flg_Run_vel_z);
 
   /* Product: '<S18>/Product' incorporates:
    *  DataTypeConversion: '<S18>/Data Type Conversion'

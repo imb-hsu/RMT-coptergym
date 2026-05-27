@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'RMT_FDM_DLL_FrameWork_FCS_RT'.
  *
- * Model version                  : 11.39
+ * Model version                  : 11.41
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Mon Mar 30 13:54:53 2026
+ * C/C++ source code generated on : Mon May 11 09:57:18 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -23,12 +23,12 @@
 #include "rtwtypes.h"
 #include <math.h>
 #include <string.h>
-#include "svd_o1L0Nv3Z.h"
+#include "svd_YCkpH4GJ.h"
 #include "rt_nonfinite.h"
-#include "svd_i5n8QqSI.h"
-#include "svd_I60xL6TN.h"
-#include "svd_NJw3JjRP.h"
-#include "svd_LrtoIvAo.h"
+#include "svd_UQNWgDyT.h"
+#include "svd_uqcoX62M.h"
+#include "svd_R0E0WqDA.h"
+#include "svd_cKgX9AxZ.h"
 #include "eml_find_Ejmjtket.h"
 #include "RMT_FDM_DLL_FrameWork_FCS_RT_types.h"
 #include "fc_pilot_cmd_Bus.h"
@@ -40,6 +40,17 @@
 
 static void rate_scheduler(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *const
   RMT_FDM_DLL_FrameWork_FCS_RT_M);
+const Controller_Commands_Bus
+  RMT_FDM_DLL_FrameWork_FCS_RT_rtZController_Commands_Bus = { 0.0,/* w1_cmd_radDs */
+  0.0,                                 /* w2_cmd_radDs */
+  0.0,                                 /* w3_cmd_radDs */
+  0.0,                                 /* w4_cmd_radDs */
+  0.0,                                 /* w5_cmd_radDs */
+  0.0,                                 /* w6_cmd_radDs */
+  0.0,                                 /* w7_cmd_radDs */
+  0.0                                  /* w8_cmd_radDs */
+};
+
 const Failure_Bus RMT_FDM_DLL_FrameWork_FCS_RT_rtZFailure_Bus = { { 0.0, 0.0,
     0.0, 0.0, 0.0, 0.0, 0.0, 0.0 }     /* motor_loss */
 };
@@ -460,7 +471,8 @@ static void rt_ertODEUpdateContinuousStates(RTWSolverInfo *si ,
   *RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures, Vehicle_Bus
   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle, Measurements_Bus
   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements, fc_est_Bus
-  *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation)
+  *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation, Controller_Commands_Bus
+  *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands)
 {
   time_T t = rtsiGetT(si);
   time_T tnew = rtsiGetSolverStopTime(si);
@@ -502,7 +514,8 @@ static void rt_ertODEUpdateContinuousStates(RTWSolverInfo *si ,
     RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures,
     RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle,
     RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements,
-    RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+    RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation,
+    RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
   RMT_FDM_DLL_FrameWork_FCS_RT_derivatives(RMT_FDM_DLL_FrameWork_FCS_RT_M);
 
   /* f2 = f(t + (h/2), y + (h/2)*f1) */
@@ -519,7 +532,8 @@ static void rt_ertODEUpdateContinuousStates(RTWSolverInfo *si ,
     RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures,
     RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle,
     RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements,
-    RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+    RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation,
+    RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
   RMT_FDM_DLL_FrameWork_FCS_RT_derivatives(RMT_FDM_DLL_FrameWork_FCS_RT_M);
 
   /* f3 = f(t + h, y + h*f2) */
@@ -537,7 +551,8 @@ static void rt_ertODEUpdateContinuousStates(RTWSolverInfo *si ,
     RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures,
     RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle,
     RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements,
-    RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+    RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation,
+    RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
   RMT_FDM_DLL_FrameWork_FCS_RT_derivatives(RMT_FDM_DLL_FrameWork_FCS_RT_M);
 
   /* tnew = t + h
@@ -560,7 +575,8 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
   *RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures, Vehicle_Bus
   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle, Measurements_Bus
   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements, fc_est_Bus
-  *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation)
+  *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation, Controller_Commands_Bus
+  *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands)
 {
   B_RMT_FDM_DLL_FrameWork_FCS_RT_T *RMT_FDM_DLL_FrameWork_FCS_RT_B =
     RMT_FDM_DLL_FrameWork_FCS_RT_M->ModelData.blockIO;
@@ -1159,7 +1175,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
 
   /* Trigonometry: '<S7>/Trigonometric Function' incorporates:
    *  Inport: '<Root>/States_Init'
-   *  SignalConversion generated from: '<S2>/Vector Concatenate'
+   *  SignalConversion generated from: '<S1>/Vector Concatenate'
    */
   b_TrigonometricFunction1_hmbf = cos
     (RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Phi_rad);
@@ -1169,7 +1185,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
 
   /* Trigonometry: '<S7>/Trigonometric Function1' incorporates:
    *  Inport: '<Root>/States_Init'
-   *  SignalConversion generated from: '<S2>/Vector Concatenate'
+   *  SignalConversion generated from: '<S1>/Vector Concatenate'
    */
   b_TrigonometricFunction_hrln = sin
     (RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Phi_rad);
@@ -1190,7 +1206,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
 
   /* Trigonometry: '<S8>/Trigonometric Function' incorporates:
    *  Inport: '<Root>/States_Init'
-   *  SignalConversion generated from: '<S2>/Vector Concatenate'
+   *  SignalConversion generated from: '<S1>/Vector Concatenate'
    */
   b_TrigonometricFunction_hrln = cos
     (RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Theta_rad);
@@ -1205,7 +1221,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
 
   /* Trigonometry: '<S8>/Trigonometric Function1' incorporates:
    *  Inport: '<Root>/States_Init'
-   *  SignalConversion generated from: '<S2>/Vector Concatenate'
+   *  SignalConversion generated from: '<S1>/Vector Concatenate'
    */
   b_TrigonometricFunction1_hmbf = sin
     (RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Theta_rad);
@@ -1226,7 +1242,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
 
   /* Trigonometry: '<S9>/Trigonometric Function' incorporates:
    *  Inport: '<Root>/States_Init'
-   *  SignalConversion generated from: '<S2>/Vector Concatenate'
+   *  SignalConversion generated from: '<S1>/Vector Concatenate'
    */
   b_TrigonometricFunction_hrln = cos
     (RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Psi_rad);
@@ -1236,7 +1252,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
 
   /* Trigonometry: '<S9>/Trigonometric Function1' incorporates:
    *  Inport: '<Root>/States_Init'
-   *  SignalConversion generated from: '<S2>/Vector Concatenate'
+   *  SignalConversion generated from: '<S1>/Vector Concatenate'
    */
   b_TrigonometricFunction1_hmbf = sin
     (RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Psi_rad);
@@ -1283,7 +1299,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
   /* Concatenate: '<S9>/Vector Concatenate3' incorporates:
    *  Concatenate: '<S9>/Vector Concatenate'
    *  Concatenate: '<S9>/Vector Concatenate2'
-   *  Reshape: '<S2>/Reshape'
+   *  Reshape: '<S1>/Reshape'
    */
   for (i_v = 0; i_v < 3; i_v = i_v + 1) {
     b_VectorConcatenate_ls3d[3 * i_v] = b_VectorConcatenate_dmot[i_v];
@@ -1388,7 +1404,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
 
     /* End of RateTransition: '<Root>/RT6' */
 
-    /* Delay: '<S2>/Delay' incorporates:
+    /* Delay: '<S1>/Delay' incorporates:
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1404,13 +1420,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->pos_R_WGS84.h_R_WGS84_m;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion' incorporates:
-     *  Delay: '<S2>/Delay'
+    /* DataTypeConversion: '<S1>/Data Type Conversion' incorporates:
+     *  Delay: '<S1>/Delay'
      */
     b_DataTypeConversion = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay_DSTATE;
 
-    /* Delay: '<S2>/Delay1' incorporates:
-     *  Delay: '<S2>/Delay'
+    /* Delay: '<S1>/Delay1' incorporates:
+     *  Delay: '<S1>/Delay'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1426,13 +1442,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->rot_K_IB_B_radDs.w_x_K_IB_B_radDs;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion1' incorporates:
-     *  Delay: '<S2>/Delay1'
+    /* DataTypeConversion: '<S1>/Data Type Conversion1' incorporates:
+     *  Delay: '<S1>/Delay1'
      */
     b_DataTypeConversion1 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay1_DSTATE;
 
-    /* Delay: '<S2>/Delay2' incorporates:
-     *  Delay: '<S2>/Delay'
+    /* Delay: '<S1>/Delay2' incorporates:
+     *  Delay: '<S1>/Delay'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1448,13 +1464,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->rot_K_IB_B_radDs.w_y_K_IB_B_radDs;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion2' incorporates:
-     *  Delay: '<S2>/Delay2'
+    /* DataTypeConversion: '<S1>/Data Type Conversion2' incorporates:
+     *  Delay: '<S1>/Delay2'
      */
     b_DataTypeConversion2 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay2_DSTATE;
 
-    /* Delay: '<S2>/Delay3' incorporates:
-     *  Delay: '<S2>/Delay'
+    /* Delay: '<S1>/Delay3' incorporates:
+     *  Delay: '<S1>/Delay'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1470,17 +1486,17 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->rot_K_IB_B_radDs.w_z_K_IB_B_radDs;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion3' incorporates:
-     *  Delay: '<S2>/Delay3'
+    /* DataTypeConversion: '<S1>/Data Type Conversion3' incorporates:
+     *  Delay: '<S1>/Delay3'
      */
     b_DataTypeConversion3 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay3_DSTATE;
   }
 
   /* End of RateTransition: '<Root>/RT7' */
   for (i_17 = 0; i_17 < 3; i_17 = i_17 + 1) {
-    /* Product: '<S2>/Product2' incorporates:
+    /* Product: '<S1>/Product2' incorporates:
      *  Product: '<S6>/Product10'
-     *  Reshape: '<S2>/Reshape1'
+     *  Reshape: '<S1>/Reshape1'
      */
     RMT_FDM_DLL_FrameWork_FCS_RT_B->Product2[i_17] = 0.0;
     for (i_18 = 0; i_18 < 3; i_18 = i_18 + 1) {
@@ -1489,12 +1505,12 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         * RMT_FDM_DLL_FrameWork_FCS_RT_ConstB.Reshape1[i_18];
     }
 
-    /* End of Product: '<S2>/Product2' */
+    /* End of Product: '<S1>/Product2' */
   }
 
   if (rtmIsMajorTimeStep(RMT_FDM_DLL_FrameWork_FCS_RT_M) &&
       RMT_FDM_DLL_FrameWork_FCS_RT_M->Timing.TaskCounters.TID[1] == 0) {
-    /* Delay: '<S2>/Delay16' incorporates:
+    /* Delay: '<S1>/Delay16' incorporates:
      *  Inport: '<Root>/Simulation_Control'
      */
     if (RMT_FDM_DLL_FrameWork_FCS_RT_U_Simulation_Control->flg_Reset &&
@@ -1510,13 +1526,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Product2[0];
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion4' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* DataTypeConversion: '<S1>/Data Type Conversion4' incorporates:
+     *  Delay: '<S1>/Delay16'
      */
     b_DataTypeConversion4 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay16_DSTATE;
 
-    /* Delay: '<S2>/Delay17' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay17' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      */
     if (RMT_FDM_DLL_FrameWork_FCS_RT_U_Simulation_Control->flg_Reset &&
@@ -1532,13 +1548,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Product2[1];
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion5' incorporates:
-     *  Delay: '<S2>/Delay17'
+    /* DataTypeConversion: '<S1>/Data Type Conversion5' incorporates:
+     *  Delay: '<S1>/Delay17'
      */
     b_DataTypeConversion5 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay17_DSTATE;
 
-    /* Delay: '<S2>/Delay18' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay18' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      */
     if (RMT_FDM_DLL_FrameWork_FCS_RT_U_Simulation_Control->flg_Reset &&
@@ -1554,13 +1570,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Product2[2];
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion6' incorporates:
-     *  Delay: '<S2>/Delay18'
+    /* DataTypeConversion: '<S1>/Data Type Conversion6' incorporates:
+     *  Delay: '<S1>/Delay18'
      */
     b_DataTypeConversion6 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay18_DSTATE;
 
-    /* Delay: '<S2>/Delay4' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay4' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1576,13 +1592,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->pos_R_WGS84.lambda_R_WGS84_rad;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion7' incorporates:
-     *  Delay: '<S2>/Delay4'
+    /* DataTypeConversion: '<S1>/Data Type Conversion7' incorporates:
+     *  Delay: '<S1>/Delay4'
      */
     b_DataTypeConversion7 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay4_DSTATE;
 
-    /* Delay: '<S2>/Delay5' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay5' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1598,13 +1614,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->pos_R_WGS84.mue_R_WGS84_rad;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion8' incorporates:
-     *  Delay: '<S2>/Delay5'
+    /* DataTypeConversion: '<S1>/Data Type Conversion8' incorporates:
+     *  Delay: '<S1>/Delay5'
      */
     b_DataTypeConversion8 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay5_DSTATE;
 
-    /* Delay: '<S2>/Delay6' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay6' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1620,13 +1636,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->pos_R_WGS84.h_R_WGS84_m;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion9' incorporates:
-     *  Delay: '<S2>/Delay6'
+    /* DataTypeConversion: '<S1>/Data Type Conversion9' incorporates:
+     *  Delay: '<S1>/Delay6'
      */
     b_DataTypeConversion9 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay6_DSTATE;
 
-    /* Delay: '<S2>/Delay7' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay7' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1642,13 +1658,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Phi_rad;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion10' incorporates:
-     *  Delay: '<S2>/Delay7'
+    /* DataTypeConversion: '<S1>/Data Type Conversion10' incorporates:
+     *  Delay: '<S1>/Delay7'
      */
     b_DataTypeConversion10 = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay7_DSTATE;
 
-    /* Delay: '<S2>/Delay8' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay8' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1664,13 +1680,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Theta_rad;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion11' incorporates:
-     *  Delay: '<S2>/Delay8'
+    /* DataTypeConversion: '<S1>/Data Type Conversion11' incorporates:
+     *  Delay: '<S1>/Delay8'
      */
     b_w8_cmd_radDs = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay8_DSTATE;
 
-    /* Delay: '<S2>/Delay9' incorporates:
-     *  Delay: '<S2>/Delay16'
+    /* Delay: '<S1>/Delay9' incorporates:
+     *  Delay: '<S1>/Delay16'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1686,34 +1702,34 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->att_euler_rad.Psi_rad;
     }
 
-    /* DataTypeConversion: '<S2>/Data Type Conversion12' incorporates:
-     *  Delay: '<S2>/Delay9'
+    /* DataTypeConversion: '<S1>/Data Type Conversion12' incorporates:
+     *  Delay: '<S1>/Delay9'
      */
     b_w7_cmd_radDs = RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay9_DSTATE;
   }
 
-  /* SignalConversion generated from: '<S2>/Vector Concatenate1' incorporates:
+  /* SignalConversion generated from: '<S1>/Vector Concatenate1' incorporates:
    *  Inport: '<Root>/States_Init'
    */
   b_VectorConcatenate1_kxda[0] =
     RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->vel_K_R_E_B_mDs.u_K_R_E_B_mDs;
 
-  /* SignalConversion generated from: '<S2>/Vector Concatenate1' incorporates:
+  /* SignalConversion generated from: '<S1>/Vector Concatenate1' incorporates:
    *  Inport: '<Root>/States_Init'
    */
   b_VectorConcatenate1_kxda[1] =
     RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->vel_K_R_E_B_mDs.v_K_R_E_B_mDs;
 
-  /* SignalConversion generated from: '<S2>/Vector Concatenate1' incorporates:
+  /* SignalConversion generated from: '<S1>/Vector Concatenate1' incorporates:
    *  Inport: '<Root>/States_Init'
    */
   b_VectorConcatenate1_kxda[2] =
     RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->vel_K_R_E_B_mDs.w_K_R_E_B_mDs;
   for (i_19 = 0; i_19 < 3; i_19 = i_19 + 1) {
-    /* Product: '<S2>/Product' incorporates:
-     *  Math: '<S2>/Transpose'
+    /* Product: '<S1>/Product' incorporates:
+     *  Math: '<S1>/Transpose'
      *  Product: '<S6>/Product10'
-     *  Reshape: '<S2>/Reshape'
+     *  Reshape: '<S1>/Reshape'
      */
     RMT_FDM_DLL_FrameWork_FCS_RT_B->Product[i_19] = 0.0;
     for (i_1a = 0; i_1a < 3; i_1a = i_1a + 1) {
@@ -1722,12 +1738,12 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         b_VectorConcatenate1_kxda[i_1a];
     }
 
-    /* End of Product: '<S2>/Product' */
+    /* End of Product: '<S1>/Product' */
   }
 
   if (rtmIsMajorTimeStep(RMT_FDM_DLL_FrameWork_FCS_RT_M) &&
       RMT_FDM_DLL_FrameWork_FCS_RT_M->Timing.TaskCounters.TID[1] == 0) {
-    /* Delay: '<S2>/Delay10' incorporates:
+    /* Delay: '<S1>/Delay10' incorporates:
      *  Inport: '<Root>/Simulation_Control'
      */
     if (RMT_FDM_DLL_FrameWork_FCS_RT_U_Simulation_Control->flg_Reset &&
@@ -1743,8 +1759,8 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Product[0];
     }
 
-    /* Delay: '<S2>/Delay11' incorporates:
-     *  Delay: '<S2>/Delay10'
+    /* Delay: '<S1>/Delay11' incorporates:
+     *  Delay: '<S1>/Delay10'
      *  Inport: '<Root>/Simulation_Control'
      */
     if (RMT_FDM_DLL_FrameWork_FCS_RT_U_Simulation_Control->flg_Reset &&
@@ -1760,8 +1776,8 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Product[1];
     }
 
-    /* Delay: '<S2>/Delay12' incorporates:
-     *  Delay: '<S2>/Delay10'
+    /* Delay: '<S1>/Delay12' incorporates:
+     *  Delay: '<S1>/Delay10'
      *  Inport: '<Root>/Simulation_Control'
      */
     if (RMT_FDM_DLL_FrameWork_FCS_RT_U_Simulation_Control->flg_Reset &&
@@ -1777,8 +1793,8 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Product[2];
     }
 
-    /* Delay: '<S2>/Delay13' incorporates:
-     *  Delay: '<S2>/Delay10'
+    /* Delay: '<S1>/Delay13' incorporates:
+     *  Delay: '<S1>/Delay10'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1795,8 +1811,8 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->pos_R_O_m.x_R_O_m;
     }
 
-    /* Delay: '<S2>/Delay14' incorporates:
-     *  Delay: '<S2>/Delay10'
+    /* Delay: '<S1>/Delay14' incorporates:
+     *  Delay: '<S1>/Delay10'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1813,8 +1829,8 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->pos_R_O_m.y_R_O_m;
     }
 
-    /* Delay: '<S2>/Delay15' incorporates:
-     *  Delay: '<S2>/Delay10'
+    /* Delay: '<S1>/Delay15' incorporates:
+     *  Delay: '<S1>/Delay10'
      *  Inport: '<Root>/Simulation_Control'
      *  Inport: '<Root>/States_Init'
      */
@@ -1831,13 +1847,13 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init->pos_R_O_m.z_R_O_m;
     }
 
-    /* BusAssignment: '<S2>/Bus Assignment' incorporates:
-     *  Delay: '<S2>/Delay10'
-     *  Delay: '<S2>/Delay11'
-     *  Delay: '<S2>/Delay12'
-     *  Delay: '<S2>/Delay13'
-     *  Delay: '<S2>/Delay14'
-     *  Delay: '<S2>/Delay15'
+    /* BusAssignment: '<S1>/Bus Assignment' incorporates:
+     *  Delay: '<S1>/Delay10'
+     *  Delay: '<S1>/Delay11'
+     *  Delay: '<S1>/Delay12'
+     *  Delay: '<S1>/Delay13'
+     *  Delay: '<S1>/Delay14'
+     *  Delay: '<S1>/Delay15'
      */
     memset(&b_fc_measurements, 0, sizeof(fc_measurements_Bus));
     b_fc_measurements.baro_meas.h_Alt_Baro_meas_m = b_DataTypeConversion;
@@ -1879,7 +1895,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
     if (rtmIsMajorTimeStep(RMT_FDM_DLL_FrameWork_FCS_RT_M) &&
         RMT_FDM_DLL_FrameWork_FCS_RT_M->Timing.TaskCounters.TID[1] == 0) {
       /* RateTransition: '<Root>/RT2' incorporates:
-       *  BusAssignment: '<S2>/Bus Assignment'
+       *  BusAssignment: '<S1>/Bus Assignment'
        */
       RMT_FDM_DLL_FrameWork_FCS_RT_B->RT2 = b_fc_measurements;
     }
@@ -3332,7 +3348,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
             X[i_2j] = (rtNaN);
           }
         } else {
-          svd_i5n8QqSI(A, U, s, V);
+          svd_UQNWgDyT(A, U, s, V);
           absx = fabs(s[0]);
           if ((!!rtIsInf(absx)) || (!!rtIsNaN(absx))) {
             b_r = (rtNaN);
@@ -3560,7 +3576,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
         N_M_tmp_size[1] = 10;
         memcpy(&N_M_tmp_data[0], &e_1[0], 100U * sizeof(real_T));
       } else {
-        svd_o1L0Nv3Z(rtCP_Constant1_Value_brmz, a__1, s_0, V_0);
+        svd_YCkpH4GJ(rtCP_Constant1_Value_brmz, a__1, s_0, V_0);
         r_0 = 1;
         absx_0 = fabs(s_0[0]);
         if ((!!rtIsInf(absx_0)) || (!!rtIsNaN(absx_0))) {
@@ -3614,7 +3630,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
       }
 
       if (!!b_p) {
-        svd_I60xL6TN(N_M_tmp_data, N_M_tmp_size, b_s_data, &b_s_size);
+        svd_uqcoX62M(N_M_tmp_data, N_M_tmp_size, b_s_data, &b_s_size);
       } else {
         loop_ub = (int32_T)(real_T)N_M_tmp_size[1] - 1;
         for (i_2p = 0; i_2p <= loop_ub; i_2p = i_2p + 1) {
@@ -3673,7 +3689,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
           b_X[i_g] = (rtNaN);
         }
       } else {
-        svd_NJw3JjRP(b_Product6, U_0, s_1, V_1);
+        svd_R0E0WqDA(b_Product6, U_0, s_1, V_1);
         absx_1 = fabs(s_1[0]);
         if ((!!rtIsInf(absx_1)) || (!!rtIsNaN(absx_1))) {
           b_r_1 = (rtNaN);
@@ -3759,7 +3775,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
       }
 
       if (!!b_p_0) {
-        svd_LrtoIvAo(b_Product6, s_1);
+        svd_cKgX9AxZ(b_Product6, s_1);
       } else {
         for (i_n = 0; i_n < 4; i_n = i_n + 1) {
           s_1[i_n] = m_0[i_n];
@@ -4707,7 +4723,7 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
     RMT_FDM_DLL_FrameWork_FCS_RT_B->Contoller_cmd_faults.w8_cmd_radDs =
       b_Reshape[7] + RMT_FDM_DLL_FrameWork_FCS_RT_B->RT_itkc.w8_cmd_radDs;
 
-    /* BusAssignment: '<S1>/Bus Assignment' incorporates:
+    /* BusAssignment: '<S2>/Bus Assignment' incorporates:
      *  Inport: '<Root>/w_cmd_radDs'
      */
     b_BusAssignment.w1_cmd_radDs = RMT_FDM_DLL_FrameWork_FCS_RT_U_w_cmd_radDs[0];
@@ -4736,10 +4752,11 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
   if (!RMT_FDM_DLL_FrameWork_FCS_RT_U_Simulation_Control->flg_Enable_Controller)
   {
     /* Switch: '<Root>/Switch' */
-    RMT_FDM_DLL_FrameWork_FCS_RT_B->Switch = RMT_FDM_DLL_FrameWork_FCS_RT_B->RT4;
+    RMT_FDM_DLL_FrameWork_FCS_RT_B->Controller_Commands =
+      RMT_FDM_DLL_FrameWork_FCS_RT_B->RT4;
   } else {
     /* Switch: '<Root>/Switch' */
-    RMT_FDM_DLL_FrameWork_FCS_RT_B->Switch =
+    RMT_FDM_DLL_FrameWork_FCS_RT_B->Controller_Commands =
       RMT_FDM_DLL_FrameWork_FCS_RT_B->Contoller_cmd_faults;
   }
 
@@ -4764,13 +4781,17 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
              &rtCP_Constant6_Value_pzmj, &rtCP_Constant7_Value_daeb,
              &rtCP_Constant8_Value, RMT_FDM_DLL_FrameWork_FCS_RT_U_States_Init,
              RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures,
-             &RMT_FDM_DLL_FrameWork_FCS_RT_B->Switch,
+             &RMT_FDM_DLL_FrameWork_FCS_RT_B->Controller_Commands,
              &RMT_FDM_DLL_FrameWork_FCS_RT_B->Vehicle,
              &RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements,
              &(RMT_FDM_DLL_FrameWork_FCS_RT_DW->RMT_Plant_InstanceData.rtb),
              &(RMT_FDM_DLL_FrameWork_FCS_RT_DW->RMT_Plant_InstanceData.rtdw),
              &(RMT_FDM_DLL_FrameWork_FCS_RT_X->RMT_Plant_CSTATE),
              &(RMT_FDM_DLL_FrameWork_FCS_RT_DW->RMT_Plant_InstanceData.rtzce));
+
+  /* Outport: '<Root>/Controller_Commands' */
+  *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands =
+    RMT_FDM_DLL_FrameWork_FCS_RT_B->Controller_Commands;
 
   /* RateTransition: '<Root>/RT5' */
   if (rtmIsMajorTimeStep(RMT_FDM_DLL_FrameWork_FCS_RT_M) &&
@@ -4796,97 +4817,97 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
   if (rtmIsMajorTimeStep(RMT_FDM_DLL_FrameWork_FCS_RT_M)) {
     if (rtmIsMajorTimeStep(RMT_FDM_DLL_FrameWork_FCS_RT_M) &&
         RMT_FDM_DLL_FrameWork_FCS_RT_M->Timing.TaskCounters.TID[1] == 0) {
-      /* Update for Delay: '<S2>/Delay' */
+      /* Update for Delay: '<S1>/Delay' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.baro_meas.h_Baro_meas_m;
 
-      /* Update for Delay: '<S2>/Delay1' */
+      /* Update for Delay: '<S1>/Delay1' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_hvp0 = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay1_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.imu_meas.gyro_meas.w_x_K_IB_B_IMU_meas_radDs;
 
-      /* Update for Delay: '<S2>/Delay2' */
+      /* Update for Delay: '<S1>/Delay2' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_agwh = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay2_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.imu_meas.gyro_meas.w_y_K_IB_B_IMU_meas_radDs;
 
-      /* Update for Delay: '<S2>/Delay3' */
+      /* Update for Delay: '<S1>/Delay3' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_k4aw = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay3_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.imu_meas.gyro_meas.w_z_K_IB_B_IMU_meas_radDs;
 
-      /* Update for Delay: '<S2>/Delay16' */
+      /* Update for Delay: '<S1>/Delay16' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_finj = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay16_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.imu_meas.acc_meas.f_x_P_B_IMU_meas_mDs2;
 
-      /* Update for Delay: '<S2>/Delay17' */
+      /* Update for Delay: '<S1>/Delay17' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_eux1 = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay17_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.imu_meas.acc_meas.f_y_P_B_IMU_meas_mDs2;
 
-      /* Update for Delay: '<S2>/Delay18' */
+      /* Update for Delay: '<S1>/Delay18' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_mxgu = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay18_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.imu_meas.acc_meas.f_z_P_B_IMU_meas_mDs2;
 
-      /* Update for Delay: '<S2>/Delay4' */
+      /* Update for Delay: '<S1>/Delay4' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_pbo0 = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay4_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.pos_R_WGS84_meas.lambda_R_WGS84_meas_rad;
 
-      /* Update for Delay: '<S2>/Delay5' */
+      /* Update for Delay: '<S1>/Delay5' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_dtzm = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay5_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.pos_R_WGS84_meas.mue_R_WGS84_meas_rad;
 
-      /* Update for Delay: '<S2>/Delay6' */
+      /* Update for Delay: '<S1>/Delay6' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_mfcp = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay6_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.pos_R_WGS84_meas.h_R_WGS84_meas_m;
 
-      /* Update for Delay: '<S2>/Delay7' */
+      /* Update for Delay: '<S1>/Delay7' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_js0i = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay7_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.ahrs_meas.Phi_meas_rad;
 
-      /* Update for Delay: '<S2>/Delay8' */
+      /* Update for Delay: '<S1>/Delay8' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_doan = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay8_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.ahrs_meas.Theta_meas_rad;
 
-      /* Update for Delay: '<S2>/Delay9' */
+      /* Update for Delay: '<S1>/Delay9' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_mzf4 = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay9_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.ahrs_meas.Psi_meas_rad;
 
-      /* Update for Delay: '<S2>/Delay10' */
+      /* Update for Delay: '<S1>/Delay10' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_chzd = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay10_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.vel_K_R_E_O_meas.u_K_R_E_O_meas_mDs;
 
-      /* Update for Delay: '<S2>/Delay11' */
+      /* Update for Delay: '<S1>/Delay11' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_giyv = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay11_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.vel_K_R_E_O_meas.v_K_R_E_O_meas_mDs;
 
-      /* Update for Delay: '<S2>/Delay12' */
+      /* Update for Delay: '<S1>/Delay12' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_lwdp = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay12_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.vel_K_R_E_O_meas.w_K_R_E_O_meas_mDs;
 
-      /* Update for Delay: '<S2>/Delay13' */
+      /* Update for Delay: '<S1>/Delay13' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_bu4u = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay13_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.pos_R_local_meas.x_R_O_meas_m;
 
-      /* Update for Delay: '<S2>/Delay14' */
+      /* Update for Delay: '<S1>/Delay14' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_atsy = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay14_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.pos_R_local_meas.y_R_O_meas_m;
 
-      /* Update for Delay: '<S2>/Delay15' */
+      /* Update for Delay: '<S1>/Delay15' */
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_nbvc = false;
       RMT_FDM_DLL_FrameWork_FCS_RT_DW->Delay15_DSTATE =
         RMT_FDM_DLL_FrameWork_FCS_RT_B->Measurements.gps_meas.pos_R_local_meas.z_R_O_meas_m;
@@ -4909,7 +4930,8 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_step(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *
       RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures,
       RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle,
       RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements,
-      RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+      RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation,
+      RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
 
     /* Update absolute time for base rate */
     /* The "clockTick0" counts the number of times the code of this task has
@@ -5001,61 +5023,61 @@ void RMT_FDM_DLL_FrameWork_FCS_RT_initialize
     RMT_FDM_DLL_FrameWork_FCS_RT_PrevZCX->Delay15_Reset_ZCE = POS_ZCSIG;
     RMT_FDM_DLL_FrameWork_FCS_RT_PrevZCX->Delay_Reset_ZCE_pegz = POS_ZCSIG;
 
-    /* InitializeConditions for Delay: '<S2>/Delay' */
+    /* InitializeConditions for Delay: '<S1>/Delay' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay1' */
+    /* InitializeConditions for Delay: '<S1>/Delay1' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_hvp0 = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay2' */
+    /* InitializeConditions for Delay: '<S1>/Delay2' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_agwh = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay3' */
+    /* InitializeConditions for Delay: '<S1>/Delay3' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_k4aw = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay16' */
+    /* InitializeConditions for Delay: '<S1>/Delay16' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_finj = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay17' */
+    /* InitializeConditions for Delay: '<S1>/Delay17' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_eux1 = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay18' */
+    /* InitializeConditions for Delay: '<S1>/Delay18' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_mxgu = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay4' */
+    /* InitializeConditions for Delay: '<S1>/Delay4' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_pbo0 = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay5' */
+    /* InitializeConditions for Delay: '<S1>/Delay5' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_dtzm = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay6' */
+    /* InitializeConditions for Delay: '<S1>/Delay6' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_mfcp = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay7' */
+    /* InitializeConditions for Delay: '<S1>/Delay7' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_js0i = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay8' */
+    /* InitializeConditions for Delay: '<S1>/Delay8' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_doan = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay9' */
+    /* InitializeConditions for Delay: '<S1>/Delay9' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_mzf4 = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay10' */
+    /* InitializeConditions for Delay: '<S1>/Delay10' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_chzd = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay11' */
+    /* InitializeConditions for Delay: '<S1>/Delay11' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_giyv = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay12' */
+    /* InitializeConditions for Delay: '<S1>/Delay12' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_lwdp = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay13' */
+    /* InitializeConditions for Delay: '<S1>/Delay13' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_bu4u = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay14' */
+    /* InitializeConditions for Delay: '<S1>/Delay14' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_atsy = true;
 
-    /* InitializeConditions for Delay: '<S2>/Delay15' */
+    /* InitializeConditions for Delay: '<S1>/Delay15' */
     RMT_FDM_DLL_FrameWork_FCS_RT_DW->icLoad_nbvc = true;
 
     /* InitializeConditions for UnitDelay: '<S32>/UD'
@@ -5183,7 +5205,8 @@ RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *RMT_FDM_DLL_FrameWork_FCS_RT
    *RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures, Vehicle_Bus
    *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle, Measurements_Bus
    *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements, fc_est_Bus
-   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation)
+   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation, Controller_Commands_Bus
+   *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands)
 {
   RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *RMT_FDM_DLL_FrameWork_FCS_RT_M;
   RMT_FDM_DLL_FrameWork_FCS_RT_M = (RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *)
@@ -5348,6 +5371,8 @@ RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *RMT_FDM_DLL_FrameWork_FCS_RT
       RMT_FDM_DLL_FrameWork_FCS_RT_rtZMeasurements_Bus;
     *RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation =
       RMT_FDM_DLL_FrameWork_FCS_RT_rtZfc_est_Bus;
+    *RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands =
+      RMT_FDM_DLL_FrameWork_FCS_RT_rtZController_Commands_Bus;
 
     /* previous zero-crossing states */
     {

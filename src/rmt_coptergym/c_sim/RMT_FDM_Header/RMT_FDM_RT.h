@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'RMT_FDM_RT'.
  *
- * Model version                  : 11.18
+ * Model version                  : 11.19
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Mon Mar 30 13:53:24 2026
+ * C/C++ source code generated on : Mon May 11 09:56:01 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -217,22 +217,10 @@ typedef struct {
   real_T NextOutput_pvtx[3];           /* '<S380>/Random Number2' (DWork 1) */
   real_T NextOutput_ba35[3];           /* '<S316>/Random Number2' (DWork 1) */
   real_T NextOutput_kxhu[3];           /* '<S354>/Random Number' (DWork 1) */
-  real_T DiscreteFIRFilter_simContextBuf[6];
-                                    /* '<S352>/Discrete FIR Filter' (DWork 2) */
-  real_T DiscreteFIRFilter_simRevCoeff[2];
-                                    /* '<S352>/Discrete FIR Filter' (DWork 3) */
   real_T NextOutput_h3vk[3];           /* '<S352>/Random Number' (DWork 1) */
   volatile real_T RateTransition1_Buffer[6];/* '<S342>/Rate Transition1' (DWork 2) */
   real_T NextOutput_kg2s[3];           /* '<S342>/Random Number1' (DWork 1) */
-  real_T DiscreteFIRFilter_simContextBuf_fvya[6];
-                                    /* '<S350>/Discrete FIR Filter' (DWork 2) */
-  real_T DiscreteFIRFilter_simRevCoeff_oa3y[2];
-                                    /* '<S350>/Discrete FIR Filter' (DWork 3) */
   real_T RateTransition5_Buffer0[3];   /* '<S342>/Rate Transition5' (DWork 1) */
-  real_T DiscreteFIRFilter_simContextBuf_nxko[6];
-                                    /* '<S349>/Discrete FIR Filter' (DWork 2) */
-  real_T DiscreteFIRFilter_simRevCoeff_po0u[2];
-                                    /* '<S349>/Discrete FIR Filter' (DWork 3) */
   real_T NextOutput_d0v2[3];           /* '<S317>/Random Number2' (DWork 1) */
   real_T NextOutput_oxco[3];           /* '<S315>/Random Number2' (DWork 1) */
   real_T NextOutput_myry[3];           /* '<S243>/Random Number2' (DWork 1) */

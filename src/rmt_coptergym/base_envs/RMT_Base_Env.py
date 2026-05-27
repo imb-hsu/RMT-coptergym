@@ -14,7 +14,7 @@ from types import SimpleNamespace
 from rmt_coptergym.c_sim.RMT_structs import (
     Simulation_Control_Bus, States_Init_Bus, fc_pilot_cmd_Bus,
     Vehicle_Bus, Measurements_Bus, fc_est_Bus, Failure_Bus,
-    real_T
+    real_T, fc_att_euler_cmd_Bus, Controller_Commands_Bus
 ) 
 
 # Import the mission manager
@@ -216,6 +216,7 @@ class RMT_Base(gym.Env, ABC):
                 self.sim.vehicle_out = Vehicle_Bus()
                 self.sim.measurements_out = Measurements_Bus()
                 self.sim.fc_est_out = fc_est_Bus()
+                self.sim.controller_commands = Controller_Commands_Bus()
 
                 # --- 2. Funktionssignaturen für die neue API definieren ---
                 # Die "create"-Funktion, die Pointer auf alle I/O-Strukturen erwartet
@@ -229,6 +230,7 @@ class RMT_Base(gym.Env, ABC):
                     ctypes.POINTER(Vehicle_Bus),
                     ctypes.POINTER(Measurements_Bus),
                     ctypes.POINTER(fc_est_Bus),
+                    ctypes.POINTER(Controller_Commands_Bus)
                 ]
 
                 # Die `step`-Funktion
@@ -242,6 +244,7 @@ class RMT_Base(gym.Env, ABC):
                     ctypes.POINTER(Vehicle_Bus),
                     ctypes.POINTER(Measurements_Bus),
                     ctypes.POINTER(fc_est_Bus),
+                    ctypes.POINTER(Controller_Commands_Bus)
                 ]
 
                 # `initialize` und `terminate`
@@ -259,6 +262,7 @@ class RMT_Base(gym.Env, ABC):
                     ctypes.byref(self.sim.vehicle_out),
                     ctypes.byref(self.sim.measurements_out),
                     ctypes.byref(self.sim.fc_est_out),
+                    ctypes.byref(self.sim.controller_commands)
                 )
                 if not self.sim.handle:
                     raise RuntimeError("Failed to create simulation instance in C.")
@@ -532,6 +536,8 @@ class RMT_Base(gym.Env, ABC):
         yout_est     = self.sim.fc_est_out
         yout_meas    = self.sim.measurements_out
 
+        yout_INDIcmd = self.sim.controller_commands
+
 
         self.agent.pos = np.array([
             yout_vehicle.States.pos_R_O_m.x_R_O_m,
@@ -583,6 +589,16 @@ class RMT_Base(gym.Env, ABC):
                                         yout_vehicle.Commands.w7_act_radDs,
                                         yout_vehicle.Commands.w8_act_radDs ])
 
+        self.INDIcmd = np.array([ yout_INDIcmd.w1_cmd_radDs,
+                                        yout_INDIcmd.w2_cmd_radDs,
+                                        yout_INDIcmd.w3_cmd_radDs,
+                                        yout_INDIcmd.w4_cmd_radDs,
+                                        yout_INDIcmd.w5_cmd_radDs,
+                                        yout_INDIcmd.w6_cmd_radDs,
+                                        yout_INDIcmd.w7_cmd_radDs,
+                                        yout_INDIcmd.w8_cmd_radDs ])
+
+
         # == ERRORS ===
         # Calculated in c-Frame, transformation from world to c-frame is needed
         # World-Frame Position Error
@@ -622,6 +638,7 @@ class RMT_Base(gym.Env, ABC):
             ctypes.byref(self.sim.vehicle_out),
             ctypes.byref(self.sim.measurements_out),
             ctypes.byref(self.sim.fc_est_out),
+            ctypes.byref(self.sim.controller_commands)
         )
 
     def _do_sim_step(self, new_action):
@@ -1037,6 +1054,8 @@ class RMT_Base(gym.Env, ABC):
             ]),
 
             "normalized_dict": self.normalized_dict,
+
+            "INDI_cmd": self.INDIcmd,
             
             
         }

@@ -7,9 +7,9 @@
  *
  * Code generated for Simulink model 'RMT_FDM_DLL_FrameWork_FCS_RT'.
  *
- * Model version                  : 11.39
+ * Model version                  : 11.41
  * Simulink Coder version         : 24.2 (R2024b) 21-Jun-2024
- * C/C++ source code generated on : Mon Mar 30 13:54:53 2026
+ * C/C++ source code generated on : Mon May 11 09:57:18 2026
  *
  * Target selection: ert_shrlib.tlc
  * Embedded hardware selection: Intel->x86-64 (Windows64)
@@ -46,6 +46,10 @@ static Measurements_Bus RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements;
 
 /* '<Root>/fc_estimation' */
 static fc_est_Bus RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation;
+
+/* '<Root>/Controller_Commands' */
+static Controller_Commands_Bus
+  RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands;
 const char *RT_MEMORY_ALLOCATION_ERROR = "memory allocation error";
 
 /*
@@ -89,7 +93,8 @@ void rt_OneStep(RT_MODEL_RMT_FDM_DLL_FrameWork_FCS_RT_T *const
     &RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures,
     &RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle,
     &RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements,
-    &RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+    &RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation,
+    &RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
 
   /* Get model outputs here */
 
@@ -124,7 +129,8 @@ int_T main(int_T argc, const char *argv[])
      &RMT_FDM_DLL_FrameWork_FCS_RT_U_Failures,
      &RMT_FDM_DLL_FrameWork_FCS_RT_Y_Vehicle,
      &RMT_FDM_DLL_FrameWork_FCS_RT_Y_Measurements,
-     &RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation);
+     &RMT_FDM_DLL_FrameWork_FCS_RT_Y_fc_estimation,
+     &RMT_FDM_DLL_FrameWork_FCS_RT_Y_Controller_Commands);
   if (RMT_FDM_DLL_FrameWork_FCS_RT_M == (NULL)) {
     (void)fprintf(stderr, "Memory allocation error during model registration");
     return(1);

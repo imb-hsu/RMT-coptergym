@@ -79,9 +79,9 @@ def set_paper_style():
         "font.size": 10,
         "axes.titlesize": 10,
         "axes.labelsize": 10,
-        "legend.fontsize": 9,
-        "xtick.labelsize": 8,
-        "ytick.labelsize": 8,
+        "legend.fontsize": 10,
+        "xtick.labelsize": 9,
+        "ytick.labelsize": 9,
         "lines.linewidth": 1.5,
         "figure.dpi": 300,
         "savefig.bbox": "tight",
@@ -92,30 +92,30 @@ def set_paper_style():
 
 PALETTE = {
     "Target": "black",             
-    "INDI": "#4E4E4E",            
+    "INDI (Blind)": "#4E4E4E",            
     "RL Add. (Blind)": "#E69F00", 
     "RL Geo. (Blind)": "#56B4E9", 
     "RL Add. (Aware)": "#D55E00", 
     "RL Geo. (Aware)": "#0072B2",
     "FTC Motor (Blind)": "#CC79A7",
     "FTC Target (Blind)": "#F0E442",
-    "RL Def (MyParam)": "#009E73",
-    "RL Def (SB3Param)": "#999999",
+    "Std-RL-params (Aware)": "#009E73",
+    "Std-RL-SB3 (Aware)": "#999999",
 }
 
 NAME_MAPPING = {
-    "INDI_Controller": "INDI",
+    "INDI_Controller": "INDI (Blind)",
     "RL_Add_Blind": "RL Add. (Blind)",
     "RL_Geo_Blind": "RL Geo. (Blind)",
     "RL_Add_Aware": "RL Add. (Aware)",
     "RL_Geo_Aware": "RL Geo. (Aware)",
     "FTC_DMotor_Blind": "FTC Motor (Blind)",
     "FTC_DTarget_Blind": "FTC Target (Blind)",
-    "RL_Default_MyParam_64Net": "RL Def (MyParam)",
-    "RL_Default_SB3Param_64Net": "RL Def (SB3Param)",
+    "RL_Default_MyParam_64Net": "Std-RL-params (Aware)",
+    "RL_Default_SB3Param_64Net": "Std-RL-SB3 (Aware)",
 }
 
-HUE_ORDER = ["INDI", "RL Add. (Aware)", "RL Geo. (Aware)", "RL Add. (Blind)", "RL Geo. (Blind)", "FTC Motor (Blind)", "FTC Target (Blind)", "RL Def (MyParam)", "RL Def (SB3Param)"]
+HUE_ORDER = ["INDI (Blind)", "RL Add. (Aware)", "RL Geo. (Aware)", "RL Add. (Blind)", "RL Geo. (Blind)", "FTC Motor (Blind)", "FTC Target (Blind)", "Std-RL-params (Aware)", "Std-RL-SB3 (Aware)"]
 
 
 Z_ORDER = {
@@ -124,16 +124,16 @@ Z_ORDER = {
     "RL Geo. (Blind)": 4,
     "RL Add. (Aware)": 5,
     "RL Geo. (Aware)": 6,
-    "INDI": 10,
+    "INDI (Blind)": 10,
     "FTC Motor (Blind)": 7,
     "FTC Target (Blind)": 8,
-    "RL Def (MyParam)": 2,
-    "RL Def (SB3Param)": 2,
+    "Std-RL-params (Aware)": 2,
+    "Std-RL-SB3 (Aware)": 2,
 }
 
 LINE_STYLES = {
     "Target": {"linestyle": "-", "linewidth": 1.5, "alpha": 1.0},
-    "INDI":   {"linestyle": "--", "linewidth": 1.0, "alpha": 0.8},
+    "INDI (Blind)":   {"linestyle": "--", "linewidth": 1.0, "alpha": 0.8},
 }
 DEFAULT_STYLE = {"linestyle": "-", "linewidth": 1.0, "alpha": 0.8}
 
@@ -258,7 +258,7 @@ def plot_rmse_bars_per_scenario_type(df, output_dir):
         ax.set_title(f"Anomaly Comparison for Scenario: {SCENARIO_PRETTY_NAMES.get(scen, scen)}", y=1.35)
         ax.grid(True, axis='y', zorder=0)
         ax.set_axisbelow(True)
-        sns.move_legend(ax, "lower center", bbox_to_anchor=(0.5, 0.975), ncol=3, title=None, frameon=False)        
+        sns.move_legend(ax, "lower center", bbox_to_anchor=(0.5, 0.975), ncol=2, title=None, frameon=False)        
         scen_file = scen.replace("_", " ")
         plt.savefig(os.path.join(save_dir, f"Bar_Scen_{scen_file}.pdf"))
         plt.close()
@@ -294,7 +294,7 @@ def plot_rmse_bars_per_mission_across_anomalies(df, output_dir):
         
         miss_clean = miss.replace("Benchmark_", "")
         
-        plt.figure(figsize=(1.45*FIG_WIDTH, 0.75*FIG_HEIGHT))
+        plt.figure(figsize=(1.45*FIG_WIDTH, 0.85*FIG_HEIGHT))
         ax = sns.barplot(
             data=subset, 
             x="Scenario_Label",
@@ -319,7 +319,7 @@ def plot_rmse_bars_per_mission_across_anomalies(df, output_dir):
         plt.xticks(rotation=0)
         plt.yticks()
         
-        sns.move_legend(ax, "lower center", bbox_to_anchor=(0.5, 0.975), ncol=3, title=None, frameon=False)
+        sns.move_legend(ax, "lower center", bbox_to_anchor=(0.5, 0.94), ncol=2, title=None, frameon=False)
         
         plt.tight_layout()
         plt.savefig(os.path.join(save_dir, f"Bar_Mission_{miss_clean}_CrossAnomaly.pdf"))
@@ -1015,13 +1015,13 @@ def main():
     # Hier kannst du definieren, welche Agenten in den Plots erscheinen sollen.
     # "INDI" sollte für den Vergleich meistens dabei sein.
     SELECTED_AGENTS = [
-        "INDI", 
+        "INDI (Blind)", 
         #"RL Add. (Aware)", 
         "RL Add. (Blind)", 
         "RL Geo. (Aware)",
         #"RL Geo. (Blind)", 
         "FTC Motor (Blind)",
-        "RL Def (SB3Param)" # Beispiel für einen 'Zappler' im Vergleich
+        "Std-RL-SB3 (Aware)" # Beispiel für einen 'Zappler' im Vergleich
     ]
     # Falls SELECTED_AGENTS = None, werden alle Agenten aus der CSV genommen.
     # -----------------------

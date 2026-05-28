@@ -9,7 +9,7 @@ in a 3D environment using PyVista (VTK).
 Features:
 - Dual-drone support (Agent vs Reference/INDI)
 - High-resolution rendering with Anti-Aliasing (FHD, 4K)
-- Telemetry Overlay: Beautiful transparent 2D Drone Schematic (Motor Health)
+- Overlay: 2D Drone Schematic and Status: Motor Health
 - Automatic model scaling & FRD to VTK transforms
 
 ==============================================================================
@@ -23,18 +23,16 @@ import pyvista as pv
 import matplotlib.pyplot as plt
 import vtk
 
-# Disable annoying VTK warnings in terminal
+# Disable VTK warnings in terminal
 vtk.vtkObject.GlobalWarningDisplayOff()
 
 # ============================================================
-# --- WINDOWS HIGH-DPI FIX (Gegen das "Viertel-Bildschirm" Chart Problem) ---
+# --- WINDOWS HIGH-DPI FIX  ---
 if os.name == 'nt':
     import ctypes
     try:
-        # Versucht den modernen DPI-Awareness Mode (Windows 10/11)
         ctypes.windll.shcore.SetProcessDpiAwareness(1)
     except Exception:
-        # Fallback für ältere Windows-Versionen
         ctypes.windll.user32.SetProcessDPIAware()
 # ============================================================
 
@@ -50,12 +48,13 @@ RES_4K    = (3840, 2160)
 
 RESOLUTION = RES_1080P       
 VIDEO_FPS = 60               
-SPEED_FACTOR = 1.0           
-MAX_DURATION = 8            
+SPEED_FACTOR = 2.0       
+# the MAX_DURATION is important as it defines the length of the video   
+MAX_DURATION = 8.0
 
 SHOW_MOTOR_OVERLAY = True
 FAIL_THRESHOLD = 0.45         # RPS limit: Motors below this value turn RED!
-WARN_THRESHOLD = 0.175
+WARN_THRESHOLD = 0.175        # RPS limit: Motors below this value turn YELLOW!
 SHOW_TRAJECTORY = True
 VALIDATION_2D_PLOT = False   
 
@@ -123,11 +122,29 @@ def add_ground(plotter):
     
     plotter.add_mesh(grid, style="wireframe", color="black", opacity=0.1, line_width=2)
 
+    ## optional visualizer for ground plane - recommended to not be used 
     #plane = pv.Plane(
     #    center=(0, 0, 0), direction=(0, 0, 1),
     #    i_size=GROUND_SIZE, j_size=GROUND_SIZE
     #)
     #plotter.add_mesh(plane, color="lightgray", opacity=0.2)
+
+
+def compute_frame_indices(time_series, n_frames, duration, speed_factor=SPEED_FACTOR):
+    """Map a log's sim_time to a fixed number of video frames using its own time scaling."""
+    t = np.asarray(time_series, dtype=float)
+    if len(t) == 0:
+        return np.zeros(n_frames, dtype=int)
+
+    t = (t - t[0]) / speed_factor
+    if t[-1] <= 0.0:
+        return np.zeros(n_frames, dtype=int)
+
+    # Scale each log to exactly the target video duration.
+    t_rescaled = t * (duration / t[-1])
+    frame_times = np.linspace(0.0, duration, n_frames, endpoint=True)
+    positions = np.interp(frame_times, t_rescaled, np.arange(len(t)))
+    return np.clip(np.round(positions).astype(int), 0, len(t) - 1)
 
 
 # ============================================================
@@ -139,12 +156,8 @@ def create_drone_schematic(num_motors, loc=(0.02, 0.72)):
     Creates a clean, transparent 2D drawing of an X8 drone frame.
     No axes, no background - just the outlines and motor status points!
     """
-    # WICHTIG: Das Verhältnis von Width zu Height MUSS für ein 16:9 Video
-    # exakt 9/16 betragen, damit Kreise im HUD auch rund bleiben! 
-    # Bei Height=0.25 ist Width=0.14
+    # We use a 16:9 video, therefore we scale the videout for this format
     chart = pv.Chart2D(size=(0.14, 0.25), loc=loc)
-    
-    # Alles unsichtbar machen (Hintergrund, Rahmen, Achsen)
     chart.background_color = (1.0, 1.0, 1.0, 0.0) 
     chart.border_color = 'black'
     
@@ -159,34 +172,26 @@ def create_drone_schematic(num_motors, loc=(0.02, 0.72)):
     chart.x_axis.grid = False
     chart.y_axis.grid = False
     
-    # Etwas mehr Puffer, damit dicke Ränder nicht abgeschnitten werden
     chart.x_axis.range = [-1.4, 1.4]
     chart.y_axis.range =[-1.4, 1.4]
     
-    # 3. Zentrum (Schwarze Outline)
+    # actual drone figure
     chart.scatter([0],[0], color="black", size=78, style="s")
-    # 2. X-Frame Arme zeichnen (Eine dicke massive Linie statt 2 kleine!)
-    # Arm 1: Hinten-Links nach Vorne-Rechts
+
+    # Arm 1: lowerleft to frontright
     chart.line([-1, 1], [-1, 1], color="black", width=16)
     chart.line([-1, 1], [-1, 1], color="white", width=8)
-    # Arm 2: Vorne-Links nach Hinten-Rechts
+    # Arm 2: front left to lowerright
     chart.line([-1, 1], [1, -1], color="black", width=15)
     chart.line([-1, 1], [1, -1], color="white", width=8)
-    # 3. Zentrum (weiß gefüllt)
+    # 3. Central Body
     chart.scatter([0],[0], color="white", size=70, style="s")
-    
-    # 4. Nase / Forward-Indikator (kleines Dreieck vorne)
-    #chart.area([-0.001,-0.2, 0, 0.2, -0.2, 0.001],[0,-0.2, 0.25, -0.2, -0.2,0], color="black")# liner with add  -0.2, -0.2, width=3)
-    # X-Koordinaten: Links, Mitte, Rechts
+    # 4. Forward-Indicator
     x = [-0.3, 0.0, 0.3]
-    # Y1 (Unterkante): Bleibt flach bei 0.8
     y_bottom =[-0.3, -0.3, -0.3]
-    # Y2 (Oberkante): Geht in der Mitte hoch auf 1.3
     y_top =[-0.25, 0.25, -0.25]
-    
     chart.area(x, y_bottom, y_top, color="black")
-    
-    # 5. Motoren-Mapping (X8 Layout)
+    # 5. Motor-Map (X8 Layout)
     positions =[
         ( 1.1,  1.1),  # M1 (Front-Right, Outer)
         (-1.1, -1.1),  # M2 (Rear-Left, Outer)
@@ -198,14 +203,12 @@ def create_drone_schematic(num_motors, loc=(0.02, 0.72)):
         ( 0.75,-0.75)  # M8 (Rear-Right, Inner)
     ]
     
+    # each motor has an outline and a colored center
     motor_plots =[]
     for i in range(min(num_motors, 8)):
         x, y = positions[i]
         size = 30 if i < 4 else 25
-        
-        # Zuerst ein größerer schwarzer Kreis als Outline
         chart.scatter([x], [y], color="black", size=size+8, style="o")
-        # Dann der farbige (grün/rot) Kreis darüber
         m_plot = chart.scatter([x], [y], color="green", size=size, style="o")
         motor_plots.append(m_plot)
         
@@ -236,11 +239,12 @@ def main(path1, path2, model_path, output_video, agent1_name, agent2_name):
     else:
         pos2 = rpy2 = motors2 = None
 
-    duration = min((t1.iloc[-1] - t1[0]) / SPEED_FACTOR, MAX_DURATION)
+    duration = float(MAX_DURATION)
     print(f"Rendering Duration: {duration:.2f}s at {VIDEO_FPS} FPS")
     
     n_frames = int(duration * VIDEO_FPS)
-    idx = np.linspace(0, len(t1) - 1, n_frames).astype(int)
+    idx1 = compute_frame_indices(t1, n_frames, duration)
+    idx2 = compute_frame_indices(t2, n_frames, duration) if path2 is not None else None
 
     # 2. Setup Plotter 
     plotter = pv.Plotter(window_size=RESOLUTION, off_screen=True)
@@ -250,13 +254,6 @@ def main(path1, path2, model_path, output_video, agent1_name, agent2_name):
 
     plotter.enable_ssao(radius=0.5, bias=0.01) 
 
-    # 1. Standardlichter löschen
-    #plotter.remove_all_lights()
-    # 2. Hauptlicht (Sonne) - schräg von oben rechts
-    #light1 = pv.Light(position=(20, 20, 20), focal_point=(0, 0, 0), 
-    #                  color="#FFFFFF", intensity=0.8, light_type='scene light')
-    #plotter.add_light(light1)
-    # 3. Füll-Licht (sanftes Gegenlicht) - schräg von unten links
     light2 = pv.Light(position=(-10, -10, 50), focal_point=(0, 0, 35), 
                       color="#F3E34F", intensity=0.5, light_type='scene light')
     plotter.add_light(light2)
@@ -274,24 +271,24 @@ def main(path1, path2, model_path, output_video, agent1_name, agent2_name):
 
     drone1 = plotter.add_mesh(drone_mesh.copy(), 
                               opacity=0.85, 
-                              color="#199bf8",       # Ein schönes Blau
-                              pbr=True,              # Physikalisches Rendering an!
-                              metallic=0.25,          # Leicht metallisch
-                              roughness=0.5,         # Reflektiert Licht
+                              color="#199bf8",     
+                              pbr=True,              
+                              metallic=0.25,          
+                              roughness=0.5,         
                               smooth_shading=True,
-                              show_edges=True,       # Runde Kanten
-                              edge_color='black')   # Runde Kanten
+                              show_edges=True,     
+                              edge_color='black')   
      
     if pos2 is not None:
         drone2 = plotter.add_mesh(drone_mesh.copy(), 
                                   opacity=0.85,
-                                  color="#d80a0a",   # Ein schönes Rot
+                                  color="#d80a0a",  
                                   pbr=True, 
                                   metallic=0.25, 
                                   roughness=0.5, 
                                   smooth_shading=True,
-                                  show_edges=True,       # Runde Kanten
-                                  edge_color='black')   # Runde Kanten
+                                  show_edges=True,     
+                                  edge_color='black')  
 
     # 4. Trajectories & Target
     sphere = pv.Sphere(radius=0.04, center=(0,0,0), theta_resolution=60, phi_resolution=60)
@@ -302,24 +299,18 @@ def main(path1, path2, model_path, output_video, agent1_name, agent2_name):
     # 5. Initialize ONLY ONE Graphical HUD (for Primary Agent)
     if SHOW_MOTOR_OVERLAY and anomaly is not None:
         num_m1 = len(anomaly[0])
-        # Das HUD wird erstellt (Y-Start=0.68, Y-Ende ist 0.68+0.25=0.93 -> sicher im Bild!)
         chart1, chart_circles1 = create_drone_schematic(num_m1) #.68))
         plotter.add_chart(chart1)
 
     # 6. Add Clean Text Legend next to the HUD
-    # Text sitzt jetzt neben dem HUD (X=0.18) und auf exakt passender Höhe
     title_text = plotter.add_text("UAV Simulation: Intermittend Actuator Dropout", position=(0.18, 0.91), color="black", font_size=26, viewport=True)
     title_text.GetTextProperty().SetBold(True)
-    #plotter.add_text("Flugverhaltens unter Motorausfall", position=(0.18, 0.91), color="black", font_size=26, viewport=True)
     plotter.add_text(f"{agent1_name}", position=(0.18, 0.845), color="#2287cf", font_size=26, viewport=True)
     if pos2 is not None:
         plotter.add_text(f"{agent2_name}", position=(0.18, 0.78), color="#c11212", font_size=26, viewport=True)
 
-    
-    # 1. Wir erstellen eine leere 2D-Chart als Hintergrund-Panel
     alarm_box = pv.Chart2D(size=(0.33, 0.05), loc=(0.18, 0.72))
     
-    # Achsen und Raster komplett ausblenden
     alarm_box.x_axis.tick_labels_visible = False
     alarm_box.y_axis.tick_labels_visible = False
     alarm_box.x_axis.tick_size = 0
@@ -329,48 +320,46 @@ def main(path1, path2, model_path, output_video, agent1_name, agent2_name):
     alarm_box.x_axis.grid = False
     alarm_box.y_axis.grid = False
     
-    # Startfarbe (Grün) und Rahmen setzen
     alarm_box.background_color = (0.0, 0.6, 0.0, 1.0) 
     alarm_box.border_color = (0.0, 0.0, 0.0, 1.0)
     alarm_box.border_width = 2
     
     plotter.add_chart(alarm_box)
 
-    # 2. Wir legen den Text als reines Overlay EXAKT in die Mitte dieser Box
-    # Die Box geht von X=0.18 bis 0.46 und Y=0.71 bis 0.76.
-    # Text bei X=0.19, Y=0.725 zentriert ihn optisch perfekt!
+
     warning_text = plotter.add_text("---", position=(0.21, 0.7175), color="white", font_size=26, viewport=True)
-    #warning_text.GetTextProperty().SetBold(True) 
 
-
-    # 7. Fixed Camera Setup & The "Invisible Start" Bugfix
     cameraset_topdown = [
         (0.2, -0.3, 19),   
         (0.2, 0.5, 11),    
         (1.0, 0, 0)        
     ]
+
+    # camera position as VTK coordinates looking from an upper position down
     cameraset_diagonal =[
-        (2, -2.5, 19), # x, y, z Position der Kamera (VTK Koordinaten!)
-        (0, -0.3, 15),      # Focal Point (wohin die Kamera schaut, hier die Mitte des Bodens)
-        (-0.9, -0.25, 0.34)       # Up-Vektor (Z ist oben)
+        (2, -2.5, 19), 
+        (0, -0.3, 15),  
+        (-0.9, -0.25, 0.34) 
         ]
 
-    plotter.camera_position =cameraset_topdown #cameraset_diagonal
+    plotter.camera_position =cameraset_topdown
    
 
     plotter.camera.clipping_range = (0.01, 10000)
     plotter.show(auto_close=False, interactive_update=True)
 
-    # 8. Render Video
     plotter.open_movie(output_video, framerate=VIDEO_FPS)
 
-    for i in idx:
-        gx, gy, gz = frd_to_vtk_position(*goal1[i])
+    print("idx vergleich: 1: ", max(idx1), "vs 2: ", max(idx2) if idx2 is not None else 'n/a')
+
+    for frame in range(n_frames):
+        i1 = idx1[frame]
+        gx, gy, gz = frd_to_vtk_position(*goal1[i1])
         target1.SetPosition([gx, gy, gz])
     
-        x, y, z = frd_to_vtk_position(*pos1[i])
+        x, y, z = frd_to_vtk_position(*pos1[i1])
         drone1.SetPosition([x, y, z])
-        r, p, yw = frd_to_vtk_orientation(*rpy1[i])
+        r, p, yw = frd_to_vtk_orientation(*rpy1[i1])
         drone1.SetOrientation([r, p, yw])
 
         if SHOW_TRAJECTORY:
@@ -380,9 +369,10 @@ def main(path1, path2, model_path, output_video, agent1_name, agent2_name):
                 plotter.add_mesh(line, color="#0869af", name="traj_line_1", reset_camera=False, render_lines_as_tubes=True, line_width=4, lighting=False)
 
         if pos2 is not None:
-            x2, y2, z2 = frd_to_vtk_position(*pos2[i])
+            i2 = idx2[frame]
+            x2, y2, z2 = frd_to_vtk_position(*pos2[i2])
             drone2.SetPosition([x2, y2, z2])
-            r2, p2, yw2 = frd_to_vtk_orientation(*rpy2[i])
+            r2, p2, yw2 = frd_to_vtk_orientation(*rpy2[i2])
             drone2.SetOrientation([r2, p2, yw2])
 
             if SHOW_TRAJECTORY:
@@ -393,22 +383,18 @@ def main(path1, path2, model_path, output_video, agent1_name, agent2_name):
 
         # Update HUD Health State & Schematic
         if SHOW_MOTOR_OVERLAY and anomaly is not None:
-            update_motor_schematic(chart_circles1, anomaly[i])
+            update_motor_schematic(chart_circles1, anomaly[i1])
             
-            # --- NEU: MASTER ALARM LOGIK ---
-            # Prüft, ob irgendein Motor unter den Fail-Threshold gefallen ist
-            if np.any(np.array(anomaly[i]) > FAIL_THRESHOLD):
-                # FEHLER-FALL: Text ändern und Kasten auf KNALLROT schalten
+            # Alaram logic based on thresholds...
+            if np.any(np.array(anomaly[i1]) > FAIL_THRESHOLD):
                 warning_text.SetInput(" ANOMALY - DEFECT ")
                 warning_text.SetPosition((0.208, 0.7175))
                 alarm_box.background_color = (0.8, 0.0, 0.0, 1.0) 
-            elif np.any(np.array(anomaly[i]) > WARN_THRESHOLD):
-                # FEHLER-FALL: Text ändern und Kasten auf KNALLROT schalten
+            elif np.any(np.array(anomaly[i1]) > WARN_THRESHOLD):
                 warning_text.SetInput(" ANOMALY - WARNING ")
                 warning_text.SetPosition((0.18, 0.7175))
                 alarm_box.background_color = (0.4, 0.4, 0.0, 1.0) 
             else:
-                # NORMAL-FALL: Text zurücksetzen und Kasten auf GRÜN schalten
                 warning_text.SetInput(" SYSTEM NOMINAL  ")
                 warning_text.SetPosition((0.22, 0.7175))
                 alarm_box.background_color = (0.0, 0.6, 0.0, 1.0)
@@ -428,7 +414,7 @@ if __name__ == "__main__":
 
     print("project_root: ",project_root)
 
-    output_dir = os.path.join(project_root, "visualization", "videos", "x8_copter_Compare_Blind_INDI_IAD.mp4")
+    output_dir = os.path.join(project_root, "visualization", "videos", "x8_copter_Compare_Blind_INDI_IAD_test.mp4")
 
     model_dir = os.path.join(project_root, "visualization", "3dmodels", "KopixX8_Demo.obj")
     

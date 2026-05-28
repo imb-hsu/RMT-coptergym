@@ -12,6 +12,7 @@ This repository serves as a research testbed for comparing drone control strateg
   - [LINUX Setup](#linux-setup)
   - [WINDOWS 11 Setup](#windows-11-setup)
   - [Setup for Visual Studio Code](#setup-for-visual-studio-code)
+- [FAQ](#faq)
 - [Citation](#citation)
 
 ---
@@ -24,6 +25,20 @@ Additionally, our training scripts support parallel instances via `SubprocVecEnv
 
 ## Internal Usage
 This framework is used internally to evaluate the robustness of RL agents against classical control laws like INDI (Incremental Nonlinear Dynamic Inversion). It supports complex mission profiles (Velocity/Position tracking) and the injection of actuator anomalies, such as Loss of Effectiveness (LoE) or complete motor dropouts, to test adaptive and fault-tolerant behaviors.
+
+To use this project, the following steps are mandatory:
+- Install all dependencies (conda/python/sb3/...), which is explained [HERE](#init-and-install)
+- Create the datasets (trajectories and anomalies) to run the algorithms 
+  - the main code can be executed as this ```/scripts/generate_csv_datasets.py```, but individual files are available in ```/scripts/generator_utils```
+- Test the package by creating the INDI behaviour 
+  - ```/scripts/run_INDI.py```
+- Now the RL agents can be trained  
+  - Main Trainings scripts is ```/scripts/run_training_vel.py```
+  - For the Hybrid FTC agents we have a seperate train-file ```/scripts/run_training_vel.py```
+- Evaluate the flights performance and create flight videos (have in mind the INDI data is required for teh evaluation!) 
+  -  ```/scripts/create_evaluation_data.py```, this runs the ``evaluation_utils``
+  - ```/scripts/create_videos_flight_comparison.py```, this uses python vtk to render a video in top down view
+
 
 ## Package Structure: rmt_coptergym
 
@@ -105,11 +120,18 @@ Recommended to use the install script via:
 chmod +x install.sh
 ./install.sh
 ```
-> If you use the *install.sh* you don't need the manual setup
+
+
+> Attention: if you encounter ``/bin/bash^M: bad interpreter: No such file or directory``
+there was probably some issue between windows formatting for Linux scripts. To fix this run ``sed -i 's/\r$//' script.sh``
 
 At the end of the install script, you will be prompted to install Visual Studio Code extensions; this is optional and can be skipped.
 
 ### Manual Setup for VS Code or other Normal editing
+
+> If you use the *install.sh* you don't need the manual setup
+
+Otherwise we have to set up an venv and the main dependencies for stable-baselines3. 
 ```
 conda init zsh 
 source ~/.zshrc
@@ -119,6 +141,9 @@ conda activate ~/.venv
 pip install 'stable-baselines3[extra]'
 pip install sb3-contrib
 ```
+
+Afterwards continue to install all other remaining packages. Please refer to the actual requirements in ``requirements.txt``
+
 to run teh conda env and activation
 ```
 conda init zsh 
@@ -189,6 +214,12 @@ or
 
 Then VS Code will automatically recognize your Conda environments.
 
+
+## FAQ
+
+This is by far not about every issue, but some common ones you migth need to check.
+
+- sometimes the work between Linux and Windows might crash the file format and renders the shell scripts unreadable, to fix this use: `` ``
 
 ## Citation
 

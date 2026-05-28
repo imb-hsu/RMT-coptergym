@@ -58,7 +58,7 @@ class RMT_Base(gym.Env, ABC):
                  ctrl_freq: int = 125,
                  max_duration: float = 10.0,
                  use_unix: bool = False,
-                 use_fcs: bool = False, # Use the internal Flight Control System
+                 use_fcs: bool = False, # Use the internal Flight Control System: INDI
                  # NOTE: The 'initial_*' parameters below serve as fallbacks.
                  mission_pool: list = [pd.DataFrame()], # Expects a pre-loaded dataset dictionary
                  is_eval: bool = False,
@@ -1054,11 +1054,11 @@ class RMT_Base(gym.Env, ABC):
             ]),
 
             "normalized_dict": self.normalized_dict,
-
-            "INDI_cmd": self.INDIcmd,
-            
-            
         }
+
+        if self.sim.controlled:
+            info["INDI_cmd"] = self.INDIcmd
+
         return info
 
     def render(self):

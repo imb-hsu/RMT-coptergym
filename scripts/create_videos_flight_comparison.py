@@ -428,8 +428,9 @@ if __name__ == "__main__":
 
     print("project_root: ",project_root)
 
-    output_dir = os.path.join(project_root, "data", "visualization", "x8_copter_Compare_Blind_INDI_IAD.mp4")
-    model_dir = os.path.join(project_root, "data", "visualization", "3dmodels", "KopixX8_Demo.obj")
+    output_dir = os.path.join(project_root, "visualization", "videos", "x8_copter_Compare_Blind_INDI_IAD.mp4")
+
+    model_dir = os.path.join(project_root, "visualization", "3dmodels", "KopixX8_Demo.obj")
     
     agent = os.path.join(project_root, "data", "Evaluation", "Raw_Files", "RL_Add_Blind", "Intermittent_Actuator_Dropout", "Benchmark_Spiral", "run_0.csv")
     ftc = os.path.join(project_root, "data", "Evaluation", "Raw_Files", "FTC_DMotor_Blind", "Intermittent_Actuator_Dropout", "Benchmark_Spiral", "run_0.csv")
@@ -444,6 +445,7 @@ if __name__ == "__main__":
          agent1_name="INDI", 
          agent2_name="DRL (Add Blind)")
 
+#    # example to create a single trajectory video
 #    main(path1=indi, 
 #         path2=None,
 #         model_path=model_dir, 

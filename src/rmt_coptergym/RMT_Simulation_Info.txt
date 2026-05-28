@@ -1,3 +1,6 @@
 RMT Version: 	2026-05-20
 Update rate:	250Hz 
 Timesteps: 	0.004
+
+last Update:
+added direct Motorcontrol targets of INDI controller

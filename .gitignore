@@ -8,6 +8,7 @@ Anaconda3-*
 /saves/*
 /logs/*
 /data/*
+/visualization/videos/*
 
 #Used for dummy data, dont track
 /old/*

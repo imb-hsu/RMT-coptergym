@@ -9,6 +9,9 @@ sb3-contrib>=2.2.0
 numpy>=1.26.0
 matplotlib
 openpyxl
+seaborn
+pandas
+
 
 # Dependencies for simulation/rendering (if needed)
 PyOpenGL

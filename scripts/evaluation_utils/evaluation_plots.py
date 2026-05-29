@@ -1,3 +1,10 @@
+"""
+This script handles the visualization of evaluation results for the coptergym.
+It generates trajectory plots (XY and Z), velocity profiles, and performance
+comparison bar charts. It also includes utility functions to generate LaTeX
+tables summarizing the metrics for academic reporting.
+"""
+
 import pandas as pd
 import numpy as np
 import sys
@@ -14,8 +21,8 @@ def make_legend_arrow(legend, orig_handle,
                       width, height,
                       fontsize):
     
-    arrow_length = width * 1.35        # 50% länger
-    head_size_factor = 0.35           # Kopf kleiner
+    arrow_length = width * 1.35
+    head_size_factor = 0.35           # Smaller head
     
     return mpatches.FancyArrowPatch(
         (xdescent-2.85, height/2),
@@ -463,8 +470,8 @@ def create_singular_trajectory_plot(ax, draw_list, plot_data, plot_type='xy'):
                         va='center', # Vertical alignment
                         # Add a circular background for readability
                         bbox=dict(boxstyle='circle,pad=0.2', fc='white', ec='black', alpha=0.9))
-
-        else: # not target us enormal lineplots instead or markers and quivers
+        else: 
+            # not target, use normal lineplots instead of markers and quivers
 
             style = LINE_STYLES.get(name, DEFAULT_STYLE)
             ax.plot(x_data, y_data, label=name, color=col, **style)
@@ -626,7 +633,7 @@ def plot_trajectories_all(df, output_dir):
                 # --- Header & Legend ---
 
                 fig.suptitle(f"Scenario: {SCENARIO_PRETTY_NAMES.get(scen_key, scen_key)} | Benchmark: {miss_clean}", 
-                            fontsize=10, x=0.5,y=0.99, ha='center', va='top') # y=0.96 ist fast ganz oben im reservierten Bereich
+                            fontsize=10, x=0.5,y=0.99, ha='center', va='top') # y=0.96 is almost at the very top in the reserved area
 
                 fig.legend(
                     legend_handles,
@@ -681,7 +688,7 @@ def plot_trajectories_all(df, output_dir):
                 ax.set_xlabel(r"Time $t$ [s]")
                 ax.set_ylabel(r"Height $z$ [m]")
                 fig.suptitle(f"Z-Plot: {SCENARIO_PRETTY_NAMES.get(scen_key, scen_key)} | Benchmark: {miss_clean}", 
-                            fontsize=10, x=0.1,y=0.99, ha='left', va='top') # y=0.96 ist fast ganz oben im reservierten Bereich
+                            fontsize=10, x=0.1,y=0.99, ha='left', va='top') # y=0.96 is almost at the very top in the reserved area
 
                 fig.legend(
                     legend_handles,
@@ -910,11 +917,11 @@ def plot_velocities(df, output_dir):
 
                     ax.set_ylabel("Velocity $V_" + comp +"$ [m/s]")
                     ax.grid(True)
-
-                # nur unten Zeitlabel
+                
+                # time label only on bottom
                 axes[-1].set_xlabel("Time [s]")
 
-                # obere x-Ticklabels aus
+                # upper x-tick labels off
                 for ax in axes[:-1]:
                     ax.tick_params(labelbottom=False)
 
@@ -965,10 +972,10 @@ def plot_velocities(df, output_dir):
                     ax.set_ylabel("Velocity Error $e_{V" + lab +"}$ [m/s]")
                     ax.grid(True)
 
-                # nur unten Zeitlabel
+                # time label only on bottom
                 axes[-1].set_xlabel("Time [s]")
 
-                # obere x-Ticklabels aus
+                # upper x-tick labels off
                 for ax in axes[:-1]:
                     ax.tick_params(labelbottom=False)
 
@@ -1005,15 +1012,15 @@ def main():
     print(f"Python Executable: {sys.executable}")
 
 
-    input_csv = os.path.join(project_root, "data", "Evaluation", "Raw_Files", "summary_metrics_full.csv")
-    output_dir = os.path.join(project_root, "data", "Evaluation", "Plots")
+    input_csv = os.path.join(project_root, "data", "evaluation", "flights", "summary_metrics_full.csv")
+    output_dir = os.path.join(project_root, "data", "evaluation", "plots")
     os.makedirs(output_dir, exist_ok=True)
     
     set_paper_style()
     
     # --- AGENT SELECTION ---
-    # Hier kannst du definieren, welche Agenten in den Plots erscheinen sollen.
-    # "INDI" sollte für den Vergleich meistens dabei sein.
+    # Here you can define which agents should appear in the plots.
+    # "INDI" should usually be included for comparison.
     SELECTED_AGENTS = [
         "INDI (Blind)", 
         #"RL Add. (Aware)", 
@@ -1021,9 +1028,9 @@ def main():
         "RL Geo. (Aware)",
         #"RL Geo. (Blind)", 
         "FTC Motor (Blind)",
-        "Std-RL-SB3 (Aware)" # Beispiel für einen 'Zappler' im Vergleich
+        "Std-RL-SB3 (Aware)" # Example for a 'jittery' one in comparison
     ]
-    # Falls SELECTED_AGENTS = None, werden alle Agenten aus der CSV genommen.
+    # If SELECTED_AGENTS = None, all agents from the CSV are taken.
     # -----------------------
 
     if os.path.exists(input_csv):

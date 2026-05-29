@@ -29,15 +29,18 @@ This framework is used internally to evaluate the robustness of RL agents agains
 To use this project, the following steps are mandatory:
 - Install all dependencies (conda/python/sb3/...), which is explained [HERE](#init-and-install)
 - Create the datasets (trajectories and anomalies) to run the algorithms 
-  - the main code can be executed as this ```/scripts/generate_csv_datasets.py```, but individual files are available in ```/scripts/generator_utils```
-- Test the package by creating the INDI behaviour 
-  - ```/scripts/run_INDI.py```
+  - the main code can be executed as this ```/scripts/data_gen.py```,   
+  but individual files are available in ```/scripts/generator_utils```
+- Test the package by running the INDI baseline 
+  - ```/scripts/eval_indi_baseline.py```
 - Now the RL agents can be trained  
-  - Main Trainings scripts is ```/scripts/run_training_vel.py```
-  - For the Hybrid FTC agents we have a seperate train-file ```/scripts/run_training_vel.py```
-- Evaluate the flights performance and create flight videos (have in mind the INDI data is required for teh evaluation!) 
-  -  ```/scripts/create_evaluation_data.py```, this runs the ``evaluation_utils``
-  - ```/scripts/create_videos_flight_comparison.py```, this uses python vtk to render a video in top down view
+  - Main training script is ```/scripts/train_vel.py```
+  - For the Hybrid FTC agents we have a separate training file ```/scripts/train_ftc.py```
+- Evaluate the flight performance and create plots/videos 
+  -  ```/scripts/eval_main.py```, this runs the ``evaluation_utils`` modules
+  - ```/scripts/eval_flight_video.py```, this uses Python VTK to render a flight comparison video
+- For a one-shot setup flow, use:
+  - ```/scripts/run_initial_setup.py```, which runs `data_gen.py` followed by `eval_indi_baseline.py`
 
 
 ## Package Structure: rmt_coptergym
@@ -49,31 +52,32 @@ The code is organized as a standard Python package located in the `src/` directo
 .
 ├── src/rmt_coptergym/
 │   # Core module containing the simulation and Gymnasium environments.
-│   ├── RMT_structs.py
-│   └── gym_env/
-│       # Contains all custom Gymnasium environment classes.
-│       ├── RMT_Base_Env.py, ...
-│       └── utils/
-│           # Helper modules, e.g., for mission management.
-│           └── mission_manager.py
-│
+│   ├── application_envs/
+│   |   # Contains all custom Gymnasium environment classes - those are used for training.
+│   ├── base_envs/
+│   |   # Contains all base Gymnasium environment classes - those are the main sources to be derived from.
+│   ├── c_sim/
+│   |   # Contains all simulation relate dstuff like libaries and c-headers.
+│   └── utils/
+│       # Contains a set of utility functions.
+
 ├── data/
-│   # Stores generated mission datasets and evaluation files.
+│   # Stores generated mission datasets and evaluation files (also INDI flights).
+|
+├── visualization/
+│   # Stores generated videos of rendered flights, also contains modelfiles of the used X8.
 │
 ├── scripts/
 │   # Main entry points for training, data generation, and analysis.
-│   ├── train.py
-│   ├── generate_csv_dataset.py
-│   └── analysis.ipynb
 │
 ├── saves/
 │   # Default directory for saving trained model checkpoints and logs.
 │
 ├── old/
-│   # Archived legacy code for reference.
+│   # Legacy code or older files to cleanup - ignored for git just for personal use.
 │
-├── install.sh              # Installation script for dependencies.
-├── todo-list.md            # Development planning and research notes.
+├── install.sh  / .ps1      # Installation script for dependencies.
+├── requirements.txt        # List of packages to be installed (done with install scripts)
 └── README.md               # Project overview and documentation.
 ```
 
@@ -85,13 +89,15 @@ The core logic is located in the `src/rmt_coptergym` directory:
 - `utils/`: Utilities for mission management, trajectory loading, and visualization.
 
 ### Data Structures & C-Interface
-- **Simulation**: Fast, accurate physics .
+- **Simulation**: The Simulation is based on MATLAB/Simulink and exported.
 To maintain compatibility with the Simulink bus structures used in the C-libraries, the project uses `ctypes` to map C-structs to Python classes. These are defined in:
-`src/rmt_coptergym/c_sim/RMT_structs.py`
+`src/rmt_coptergym/c_sim/RMT_structs.py`  
+The handling of all simulation related functions and calls is handled in the class **RMT_Base** in `src/rmt_coptergym/base_envs/RMT_Base_Env.py`.
+
 
 The c-files are compiled and used as libraries:
 - **Linux (.so)**: Recommended for training on servers.
-- **Windows (.dll)**: Functional, but no in depth tested.
+- **Windows (.dll)**: Functional, but not in depth tested.
 
 This file acts as the bridge, ensuring that Python can correctly read and write to the memory used by the compiled simulation library.
  It defines all inputs (commands, state initialization) and outputs (vehicle states, sensor measurements).
@@ -198,7 +204,7 @@ Once Conda is set up, use the PowerShell install script or follow the manual ins
 
 In VS Code, you can select the Conda environment automatically:
 > `Ctrl+Shift+P` → `Python: Select Interpreter`
-> if in server mode the shortcut is not avaialble - locate the settinsg via `View` → `Command palette` 
+> if in server mode the shortcut is not available - locate the settinsg via `View` → `Command palette` 
 
 Select your Conda environment there.
 Then VS Code will open the terminal directly in this environment, without you having to manually call `conda activate`.

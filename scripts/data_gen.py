@@ -18,7 +18,7 @@ simple and repeatable way to prepare all data.
 #
 # RL-CopterBase/
 # |-- scripts/
-# |   |-- generate_csv_datasets.py  (this script)
+# |   |-- data_gen.py  (this script)
 # |   |-- generator_utils/
 # |       |-- __init__.py
 # |       |-- generate_waypoints_csv.py

@@ -1,3 +1,12 @@
+"""
+This script handles the automated evaluation of flight control models (RL agents and INDI).
+It iterates through defined benchmark missions and anomaly scenarios, executes simulations
+deterministically, logs telemetry data to CSV files, and calculates performance metrics.
+Finally, it generates a comprehensive summary of results for comparison.
+"""
+
+
+
 import pandas as pd
 import numpy as np
 import os
@@ -43,11 +52,11 @@ def run_rl_simulation(agents_config, eval_missions, anomaly_groups, global_env_k
 
         model = PPO.load(agent_cfg['path'], device='cpu')
         
-        # 1. Environment EINMAL erstellen (Initialisierung)
+        # 1. Create environment ONCE (initialization)
         base_kwargs = global_env_kwargs.copy()
         if 'env_kwargs' in agent_cfg: base_kwargs.update(agent_cfg['env_kwargs'])
         
-        # Dummy Start-Werte
+        # Dummy start values
         base_kwargs['mission_pool'] = [eval_missions[0]]
         base_kwargs['anomaly_pool'] = []
         base_kwargs['is_eval'] = True
@@ -55,16 +64,16 @@ def run_rl_simulation(agents_config, eval_missions, anomaly_groups, global_env_k
         env_class = agent_cfg.get('class', VEL_Env_I)
         vec_env = DummyVecEnv([lambda: PaperMetricsWrapper(env_class(**base_kwargs))])
         
-        # Zugriff auf die "echte" Env Instanz für unsere Update-Funktion
+        # Access the "real" Env instance for our update function
         # vec_env -> PaperMetricsWrapper -> VEL_Env
         internal_env = vec_env.envs[0].unwrapped 
         
-        # 2. Loop über Szenarien
+        # 2. Loop over scenarios
         scenarios = [("baseline", [])] + list(anomaly_groups.items())
         
         for scen_name, anomaly_list in scenarios:
             safe_scen_name = "".join([c for c in scen_name if c.isalnum() or c in (' ', '_', '-')]).strip()
-            # print(f"  >> Szenario: {scen_name}")
+            # print(f"  >> Scenario: {scen_name}")
             
             run_items = anomaly_list if len(anomaly_list) > 0 else [None]
             
@@ -80,13 +89,13 @@ def run_rl_simulation(agents_config, eval_missions, anomaly_groups, global_env_k
                     
                     if not os.path.exists(full_csv_path):
                         
-                        # Update Env settinsg so we do not need to reinitialize the env and lib-files
+                        # Update Env settings so we do not need to reinitialize the env and lib-files
                         internal_env.update_eval_config([mission_df] if mission_df is not None else None, [anomaly_df] if anomaly_df is not None else None)
                         
-                        # Seed setzen für Reproduzierbarkeit
+                        # Set seed for reproducibility
                         vec_env.seed(42 + run_idx)
                         
-                        # Reset lädt nun die Konfiguration, die wir gerade gesetzt haben
+                        # Reset now loads the configuration we just set
                         obs = vec_env.reset()
                         
                         done = False
@@ -136,7 +145,7 @@ def run_rl_simulation(agents_config, eval_missions, anomaly_groups, global_env_k
                     })
                     # print(f"  > RL: {agent_name}/{scen_name}/{mission_name} | RMSE_TE_XYZ={mets['rmse_te_xyz']:.2f} | RMSE_TE_RPY={mets['rmse_te_rpy']:.2f}")
         
-        # Sauber schließen pro Agent
+        # Cleanly close per agent
         vec_env.close()
             
     return results
@@ -153,7 +162,7 @@ def collect_indi_results(indi_base_dir, motor_min, motor_range, ctrl_freq, missi
         print(f"[ERROR] INDI data not found: {indi_base_dir}")
         return results
 
-    # Ordner durchsuchen
+    # Search folders
     scenarios = [d for d in os.listdir(indi_base_dir) if os.path.isdir(os.path.join(indi_base_dir, d))]
 
     for scen in scenarios:
@@ -195,7 +204,7 @@ def collect_indi_results(indi_base_dir, motor_min, motor_range, ctrl_freq, missi
                     print(f"  [ERROR] {csv_file}: {e}")
             else:
                 pass
-                # print(f"  [WARN] Keine CSV in {miss_path}")
+                # print(f"  [WARN] No CSV in {miss_path}")
     return results
 
 # ==============================================================================
@@ -210,9 +219,11 @@ def main():
     except NameError:
         project_root = "."
         
-    rl_output_dir = os.path.join(project_root, "data", "Evaluation", "Raw_Files")
+    rl_output_dir = os.path.join(project_root, "data", "evaluation", "flights")
     indi_input_dir = os.path.join(project_root, "data", "INDI") 
     
+
+    ## HERE YOU NEED TO SPECIFY YOUR AGENTS AND THEIR MODEL PATHS (relative to project_root) ##
     AGENTS = {
         "FTC_DMotor_Blind": {
             "class": VEL_Env_FTC_motor,
@@ -296,7 +307,7 @@ def main():
     print("   Load Anomalies")
     EVAL_ANOMALIES = ["abrupt_LoE" , "abrupt_LoE_multi", "gradual_LoE", "gradual_LoE_multi", "Intermittent_Actuator_Dropout", "Intermittent_Actuator_Dropout_multi", "permanent_LoE", "permanent_LoE_multi"]
     
-    #print(f"Loader hat folgende Keys: {list(loader.anomaly_datasets.keys())}")
+    #print(f"Loader has the following keys: {list(loader.anomaly_datasets.keys())}")
     
     anomaly_groups = {}
     for anom_type in EVAL_ANOMALIES:
@@ -327,35 +338,35 @@ def main():
     if all_res:
         df_final = pd.DataFrame(all_res)
         
-        # 1. Score pro Flug berechnen (für summary_metrics_full.csv)
+        # 1. Calculate score per flight (for summary_metrics_full.csv)
         df_final = calculate_composite_score(df_final)
 
-        # Speichere volle Zusammenfassung
+        # save all metrics
         out_csv_full = os.path.join(rl_output_dir, "summary_metrics_full.csv")
         df_final.to_csv(out_csv_full, index=False)
         print(df_final.head(3))
         
-        # 2. Aggregierte Zusammenfassung erstellen (summary_metrics_small.csv)
-        # Wir mitteln NUR die Roh-Metriken. Die NORM-Werte und den Score berechnen wir NEU.
+        # 2. Create aggregated summary (summary_metrics_small.csv)
+        # We average ONLY the raw metrics. We recalculate NORM values and the Score.
         raw_metrics = ["Stability", "WCR", "RMSE_TE_XYZ", "RMSE_TE_RPY", "RMSE_TE_VEL", "Omega_Jitter", "Motor_Jitter"]
         available_raw = [c for c in raw_metrics if c in df_final.columns]
         
-        # Gruppieren nach Agent und Mittelwert der ROHDATEN bilden
+        # Group by Agent and form the mean of RAW DATA
         df_summary = df_final.groupby("Agent")[available_raw].mean().reset_index()
 
-        # JETZT den Score auf die gemittelten Rohdaten anwenden 
-        # (Das verhindert die Clipping-Verzerrung durch Ausreißer)
+        # NOW apply the score to the averaged raw data
+        # (This prevents the clipping distortion caused by outliers)
         df_summary = calculate_composite_score(df_summary)
 
-        # Speichere kleine Zusammenfassung
+        # save smal set of metrics
         out_csv_small = os.path.join(rl_output_dir, "summary_metrics_small.csv")
         df_summary.to_csv(out_csv_small, index=False)
         
         print("\n" + "="*34)
         print(f"EVALUATION COMPLETE. Got all data. \nFull: {out_csv_full} \nSmall: {out_csv_small} \n")
 
-        # Score Overview Print (Basierend auf der korrekten Summary)
-        # Wir zeigen alle Spalten an, die für den Score relevant sind
+        # Score Overview Print (Based on the correct summary)
+        # We display all columns relevant to the score
         display_cols = [c for c in df_summary.columns if not c.startswith('NORM_')]
         print(df_summary[display_cols].sort_values(by="Score", ascending=False))
         print("\n" + "="*34)

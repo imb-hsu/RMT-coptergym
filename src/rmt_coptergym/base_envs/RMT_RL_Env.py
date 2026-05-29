@@ -90,13 +90,13 @@ class RMT_RL_Env(RMT_Base, ABC):
 
     def _get_info(self) -> dict:
         """
-        Erweitert die Basis-Info-Methode um RL-spezifische Reward-Details.
+        Extends the base info method with RL-specific reward details.
         """
         info = super()._get_info()
         info['anomaly knowledge'] = self.has_anomaly_knowledge
-        # Füge die detaillierten Reward-Komponenten hinzu, die in der RL-Schicht berechnet werden.
+        # Add the detailed reward components computed in the RL layer.
         info['reward_base'] = getattr(self.reward, 'base', 0.0)
-        # Überschreibe die Standard-Reward-Werte mit den präzisen Werten aus dieser Schicht.
+        # Override the default reward values with the precise values from this layer.
         info['reward'] = getattr(self.reward, 'total', 0.0)
         info['reward_terms'] = getattr(self.reward, 'terms', {})
         return info
@@ -108,11 +108,11 @@ class RMT_RL_Env(RMT_Base, ABC):
         Constructs the observation dictionary for the agent.
         This is now abstract and must be implemented by the child class (e.g., CopterHoverEnv).
         """
-        # Holen Sie sich die beiden Teil-Dictionaries
-        state_obs = self.get_state_observation() # Gibt {'pos_error': ..., ...} zurück
-        base_obs = self.get_base_observation()   # Gibt {'current_vel': ..., ...} zurück
+        # Retrieve the two sub-dictionaries
+        state_obs = self.get_state_observation() # Returns {'pos_error': ..., ...}
+        base_obs = self.get_base_observation()   # Returns {'current_vel': ..., ...}
 
-        # Kombinieren Sie sie mit dem Dictionary-Unpacking-Operator
+        # Combine them using dictionary unpacking
         flat_obs = {**state_obs, **base_obs}
         
         return flat_obs
@@ -155,12 +155,12 @@ class RMT_RL_Env(RMT_Base, ABC):
         # 'base':  Contains task-specific information that defines the current objective
         # This structure separates "what I am" (base_obs) from "what I need to do" (state_obs).
         # NOTE: This is NOT a `gymnasium.GoalEnv` for HER.
-        # Holen Sie sich die Definitionen aus den Unter-Methoden
-        # (Diese Methoden definieren nur die Box-Spaces, nicht die Dictionaries)
-        state_obs_spaces = self.build_state_obs_space() # Gibt z.B. {'pos_error': Box, ...} zurück
-        base_obs_spaces = self.build_base_obs_space()   # Gibt z.B. {'current_vel': Box, ...} zurück
+        # Obtain the definitions from the helper methods
+        # (These methods only define the Box spaces, not the dictionaries)
+        state_obs_spaces = self.build_state_obs_space() # e.g., {'pos_error': Box, ...}
+        base_obs_spaces = self.build_base_obs_space()   # e.g., {'current_vel': Box, ...}
 
-        # Kombinieren Sie die beiden Dictionaries zu einem einzigen, flachen Dictionary
+        # Merge the two dictionaries into a single, flat observation dict
         flat_obs_space_dict = {**state_obs_spaces, **base_obs_spaces}
         
         return spaces.Dict(flat_obs_space_dict)
@@ -259,7 +259,7 @@ class RMT_RL_Env(RMT_Base, ABC):
         elif self.reward_function == 'sqrt':
             return 1.0 - np.sqrt(norm_abs_error)
         elif self.reward_function == 'exponential':
-            # Skalierung hier, um sicherzustellen, dass exp(-1) nicht zu hoch ist
+            # Scale here to ensure exp(-1) is not too large
             return np.exp(-3.0 * norm_abs_error) 
         elif self.reward_function == 'squared_exponential':
             return np.exp(-(norm_abs_error**2))

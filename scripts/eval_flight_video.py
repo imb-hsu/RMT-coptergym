@@ -418,8 +418,8 @@ if __name__ == "__main__":
 
     model_dir = os.path.join(project_root, "visualization", "3dmodels", "KopixX8_Demo.obj")
     
-    agent = os.path.join(project_root, "data", "Evaluation", "Raw_Files", "RL_Add_Blind", "Intermittent_Actuator_Dropout", "Benchmark_Spiral", "run_0.csv")
-    ftc = os.path.join(project_root, "data", "Evaluation", "Raw_Files", "FTC_DMotor_Blind", "Intermittent_Actuator_Dropout", "Benchmark_Spiral", "run_0.csv")
+    agent = os.path.join(project_root, "data", "evaluation", "Raw_Files", "RL_Add_Blind", "Intermittent_Actuator_Dropout", "Benchmark_Spiral", "run_0.csv")
+    ftc = os.path.join(project_root, "data", "evaluation", "Raw_Files", "FTC_DMotor_Blind", "Intermittent_Actuator_Dropout", "Benchmark_Spiral", "run_0.csv")
     indi = os.path.join(project_root, "data", "INDI", "Intermittent_Actuator_Dropout", "Benchmark_Spiral", "benchmark_results.csv")
     
     print("data paths: /mnt/c/Users/MarkTappe/Desktop/GIT/GitHub3/RMT-coptergym/data/INDI/Intermittent_Actuator_Dropout/Benchmark_Spiral/benchmark_results.csv ")

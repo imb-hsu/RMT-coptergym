@@ -1,4 +1,5 @@
 # This script is just for visualization purpose to showcase the theoretical difference between ALOE, PLOE, GLOE ans IAD
+# Its just used to create a simple visual/plot thet showcases the different anomaly profiles. It is not used for any evaluation or data generation, just for visualization and understanding of the different anomaly types.
 
 import numpy as np
 import matplotlib.pyplot as plt

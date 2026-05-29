@@ -70,8 +70,6 @@ def run_qualitative_evaluation(model_path: str, eval_pool: list, config: dict, s
     for mission_dict in eval_pool:
         mission_name = mission_dict['name']
         
-        # --- DER TRICK ---
-        # Erstelle eine Environment, deren Pool NUR aus dieser einen Mission besteht.
         single_mission_pool = [mission_dict]
         eval_env_kwargs = {**config['env_kwargs'], 'mission_pool': single_mission_pool, 'is_eval': True}
         env = make_vec_env(E2E_Env, n_envs=1, vec_env_cls=DummyVecEnv, env_kwargs=eval_env_kwargs)
@@ -89,8 +87,6 @@ def run_qualitative_evaluation(model_path: str, eval_pool: list, config: dict, s
         output_file = os.path.join(save_dir, f"qualitative_eval_{mission_name}.csv")
         df.to_csv(output_file, index=False)
         print(f"Saved trajectory data to {output_file}")
-
-        # Here you could directly call the plotting functions that use the DataFrame
         plot_trajectory_results(df=df, save_path=output_file)
 
 def plot_trajectory_results(df: pd.DataFrame, save_path: str):
@@ -107,42 +103,39 @@ def plot_trajectory_results(df: pd.DataFrame, save_path: str):
     time = df['sim_time']
         
     def safe_parse_reward_dict(entry):
-        # Fall 1: Es ist bereits ein Dictionary -> perfekt!
         if isinstance(entry, dict):
             return entry
-        # Fall 2: Es ist ein String -> versuche, es zu parsen
         if isinstance(entry, str):
             try:
                 return ast.literal_eval(entry)
             except (ValueError, SyntaxError):
-                return None # Parsing fehlgeschlagen
-        # Fall 3: Es ist etwas anderes (z.B. NaN) -> ignorieren
+                return None # parsing failed
         return None
 
     axes[0, 0].set_title("Reward Components & Total")
 
-    # 2. Plot Components (Die Analyse)
+    # 2. Plot components (analysis)
     if 'reward_terms' in df.columns and not df['reward_terms'].isnull().all():
         parsed_terms = df['reward_terms'].apply(safe_parse_reward_dict).dropna()
         
         if not parsed_terms.empty:
             term_names = sorted(parsed_terms.iloc[0].keys())
             
-            # Nutze eine Colormap, um Farben automatisch zuzuweisen (besser als Standard-Zyklus bei vielen Termen)
+            # Use a colormap to assign colors automatically (better than default cycle for many terms)
             cmap = plt.get_cmap('tab10') 
             
             for i, name in enumerate(term_names):
-                # Extrahiere Zeitreihe für diesen Term
-                # Wir nehmen 'r' (roh) oder 'val' (gewichtet) - hier wohl 'r' für 0..1 Analyse besser?
-                # Falls du gewichtete Werte willst, nimm d.get('val', 0). 
-                # Für Analyse der Multiplikatoren ist 'r' meist aufschlussreicher (da 0..1).
+                # Extract time series for this term
+                # We choose 'r' (raw) or 'val' (weighted) - here 'r' is typically better for 0..1 analysis.
+                # If you want weighted values, use d.get('val', 0).
+                # For analyzing multipliers, 'r' is usually more informative (0..1).
                 values = [term_dict.get(name, {}).get('r', 0) for term_dict in parsed_terms]
                 
-                # Plot als Linie
+                # Plot as a line
                 axes[0, 0].plot(time, values, label=name, color=cmap(i % 10), alpha=0.7, linewidth=1.5)
 
-    # 1. Plot Total Reward (Die Wahrheit)
-    # Wir plotten dies zuerst oder zuletzt (Z-Order), damit es gut sichtbar ist.
+    # 1. Plot total reward (the ground truth)
+    # We plot this first or last (z-order) so it remains clearly visible.
     if 'reward' in df.columns:
         axes[0, 0].plot(time, df['reward'], label='TOTAL REWARD', color='black', linewidth=2.0, zorder=10)
 
@@ -154,13 +147,13 @@ def plot_trajectory_results(df: pd.DataFrame, save_path: str):
 
     axes[0, 1].set_title("Top-Down View (XY-Plane)")
 
-    # Helferfunktion, um die Spalte sicher in ein (N, 3) Array umzuwandeln
+    # Helper to safely convert a column into an (N, 3) array
     def _col_to_array(series):
-        # Wenn die Spalte leer ist, gib ein leeres Array mit der richtigen Form zurück
+        # If the series is empty, return an empty array with correct shape
         if series.empty: return np.empty((0, 3))
-        # Wenn es schon Arrays sind, staple sie einfach
+        # If entries are already arrays, just stack them
         if isinstance(series.iloc[0], np.ndarray): return np.stack(series.values)
-        # Ansonsten parse die Strings
+        # Otherwise parse the strings
         def safe_parse(s):
             try: return np.array(ast.literal_eval(s))
             except: return np.array([np.nan, np.nan, np.nan])
@@ -176,8 +169,8 @@ def plot_trajectory_results(df: pd.DataFrame, save_path: str):
     axes[0, 1].scatter(agent_pos[-1, 0], agent_pos[-1, 1], facecolors="none", edgecolors="blue", s=80, label="End", zorder=3)
     axes[0, 1].scatter(target_pos[:, 0], target_pos[:, 1], label='Waypoints', c='orange', marker='x', zorder=3)
 
-    # --- NEU: Dynamische, quadratische Achsen-Limits ---
-    # Finde die extremsten Koordinaten in allen Daten
+    # --- NEW: dynamic, square axis limits ---
+    # Find the most extreme coordinates across the data
     all_x = np.concatenate([agent_pos[:, 0], target_pos[:, 0]])
     all_y = np.concatenate([agent_pos[:, 1], target_pos[:, 1]])
 
@@ -205,7 +198,7 @@ def plot_trajectory_results(df: pd.DataFrame, save_path: str):
     axes[0, 1].set_ylabel("Y Position [m]"); axes[0, 1].set_xlabel("X Position [m]")
     axes[0, 1].legend(loc='upper right')
     axes[0, 1].grid(True)
-    axes[0, 1].set_aspect('equal', adjustable='box') # Wichtig für korrekte Darstellun
+    axes[0, 1].set_aspect('equal', adjustable='box') # Important for correct display
 
     axes[0, 2].set_title("Error Norms")
     # Wandle die Spalten zuerst in (N, 3) Arrays um

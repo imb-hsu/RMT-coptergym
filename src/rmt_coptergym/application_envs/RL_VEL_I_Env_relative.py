@@ -107,17 +107,15 @@ class VEL_Env(RMT_RL_Env):
         integral_reward_vec = self._calculate_reward_from_error(self.integral_error_norm)
         integral_reward = max(float(0.5*np.mean(integral_reward_vec)+0.5*np.min(integral_reward_vec)), 0.1)
 
-        # --- 1. Velocity Reward (Hauptziel) ---
+        # --- 1. Velocity Reward (main objective) ---
         vel_reward_vec = self._calculate_reward_from_error(self.normalized_dict['error_vel'])
         vel_reward = float(0.5*np.mean(vel_reward_vec)+0.5*np.min(vel_reward_vec))
-
-        # --- 2. Attitude Stability Reward (Wichtige Nebenbedingung) ---
-        # Bestrafe Abweichungen von der aufrechten Lage
-        # Hier nehmen wir den normalisierten Zustand, nicht den Fehler!
+        # --- 2. Attitude Stability Reward (important constraint) ---
+        # Penalize deviations from upright attitude
+        # Use the normalized state here, not the error!
         rp_reward_vec = self._calculate_reward_from_error(self.normalized_dict['error_rpy'][:2]) # Nur Roll/Pitch
         rp_reward = float(0.5*np.mean(rp_reward_vec)+0.5*np.min(rp_reward_vec))
-
-        yaw_reward_vec = self._calculate_reward_from_error(self.normalized_dict['error_rpy'][2]) # Nur Yaw
+        yaw_reward_vec = self._calculate_reward_from_error(self.normalized_dict['error_rpy'][2]) # Only Yaw
         yaw_reward = float(yaw_reward_vec)
 
         omega_reward_vec = self._calculate_reward_from_error(self.normalized_dict['omega'])
@@ -126,41 +124,41 @@ class VEL_Env(RMT_RL_Env):
         accel_reward_vec = self._calculate_reward_from_error(self.normalized_dict['accel'])
         accel_reward = float(0.5*np.mean(accel_reward_vec)+0.5*np.min(accel_reward_vec))
 
-        # --- 4. NEU: Paired Efficiency Reward (Dein physikalischer Ansatz) ---
+        # --- 4. NEW: Paired Efficiency Reward (your physical approach) ---
         pair_error = np.abs(self.action.cmd[[1,0,2,3]] - self.action.cmd[[4,5,7,6]]) / 200 #self.limits.motor.range
         paired_efficiency_reward = float(np.mean(self._calculate_reward_from_error(pair_error)))
 
-        # --- 5. NEU: Overall Balance Reward (Die globale Sicherheit) ---
+        # --- 5. NEW: Overall Balance Reward (global safety) ---
         #std_dev_cmds = np.std(self.action.cmd)
         #balance_error = np.clip(std_dev_cmds / (0.5 * self.limits.motor.range), 0, 1)
         #balance_reward = self._calculate_reward_from_error(np.array([balance_error]))[0]
         balance_error = np.mean(np.square(self.action.cmd/self.limits.motor.range))
         balance_reward = np.exp(-balance_error * 1.5) 
 
-        # Definiere die Grenzen der Komfortzone
-        lower_bound = self.limits.motor.min + 0.25 * self.limits.motor.range # bei 35%
-        upper_bound = self.limits.motor.min + 0.75 * self.limits.motor.range # bei 65%
+        # Define comfort zone bounds
+        lower_bound = self.limits.motor.min + 0.25 * self.limits.motor.range # around 35%
+        upper_bound = self.limits.motor.min + 0.75 * self.limits.motor.range # around 65%
 
-        # Definiere den minimalen Reward an den Rändern (wichtig: nicht 0!)
+        # Define minimal reward at the edges (important: not zero)
         MIN_REWARD_AT_EDGE = 0.3 
 
-        # Erstelle die Punkte für die Interpolation (die Ecken des Trapezoids)
-        # x-Werte: die Motor-Kommandos
+        # Create points for interpolation (corners of the trapezoid)
+        # x values: motor commands
         xp = [self.limits.motor.min, lower_bound, upper_bound, self.limits.motor.max]
-        # y-Werte: die entsprechenden Reward-Werte
+        # y values: corresponding reward values
         fp = [MIN_REWARD_AT_EDGE, 1.0, 1.0, MIN_REWARD_AT_EDGE]
-        # Berechne den Reward durch lineare Interpolation
+        # Compute reward by linear interpolation
         comfort_zone_reward = np.interp(np.mean(self.action.cmd), xp, fp)
 
-        # --- 6. NEU: Control Smoothness Reward (Der "D-Anteil") ---
+        # --- 6. NEW: Control Smoothness Reward (the 'D' term) ---
         action_delta =  self.action.box 
         smoothness_error = np.mean(np.square(action_delta)) #np.linalg.norm(action_delta) / (50+15)
-        smoothness_error = np.clip(smoothness_error, 0, 1) # Sicherstellen, dass es [0,1] ist
+        smoothness_error = np.clip(smoothness_error, 0, 1) # Ensure it is within [0,1]
         
-        # Fehler in einen Reward umwandeln
+        # Convert error into a reward
         smoothness_reward = self._calculate_reward_from_error(np.array([smoothness_error]))[0]
 
-        weights = self.reward_weights # Das Dictionary aus der __init__
+        weights = self.reward_weights # The dictionary from __init__
         
         if self.reward_type == "multiplicative":
             reward_components = np.array([
@@ -217,34 +215,21 @@ class VEL_Env(RMT_RL_Env):
                     (weights.get('smoothness', 1.0),        smoothness_reward)
                 ]
 
-            # 1. Berechne die gewichtete Summe
-            weighted_sum = sum(w * r for w, r in terms)
-            # 1. Berechne die gewichtete Summe
+            # 1. Compute weighted sum
             weighted_sum = sum(w * r for w, r in terms)
 
-            # 2. Berechne die Summe der Gewichte (für die Normalisierung)
-            total_weight = sum(w for w, r in terms)
-            # 2. Berechne die Summe der Gewichte (für die Normalisierung)
+            # 2. Compute sum of weights (for normalization)
             total_weight = sum(w for w, r in terms)
 
-            # 3. Normalisierter Basis-Reward (0 bis 1)
-            if total_weight > 0:
-                additive_base = weighted_sum / total_weight
-            else:
-                additive_base = 0.0
-            # 3. Normalisierter Basis-Reward (0 bis 1)
+            # 3. Normalized base reward (0 to 1)
             if total_weight > 0:
                 additive_base = weighted_sum / total_weight
             else:
                 additive_base = 0.0
 
-            # 4. Multipliziere mit der Comfort Zone (Hard Constraint bleibt multiplikativ)
-            # Das ist gut so! Wenn er die Comfort Zone verlässt, soll der Reward einbrechen,
-            # egal wie gut die Summe ist.
-            base_reward = float(additive_base) * (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
-            # 4. Multipliziere mit der Comfort Zone (Hard Constraint bleibt multiplikativ)
-            # Das ist gut so! Wenn er die Comfort Zone verlässt, soll der Reward einbrechen,
-            # egal wie gut die Summe ist.
+            # 4. Multiply by the comfort zone (hard constraint remains multiplicative)
+            # This is intentional: if the agent leaves the comfort zone, the reward should collapse,
+            # regardless of how good the sum is.
             base_reward = float(additive_base) * (comfort_zone_reward ** weights.get('comfort_zone', 1.0))
         
         # Log the components for analysis

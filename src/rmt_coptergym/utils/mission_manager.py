@@ -1,4 +1,4 @@
-# Speichern als: gym_env/utils/mission_manager.py
+# Saved as: gym_env/utils/mission_manager.py
 
 import numpy as np
 import pandas as pd
@@ -6,12 +6,12 @@ import os
 import matplotlib.pyplot as plt
 import ast
 
-# Wichtig: Der DataLoader wird jetzt hier importiert, damit der Test funktioniert.
+# Important: Import the DataLoader here so the test runs correctly.
 from .trajectory_dataloader import TrajectoryDataLoader
 
 class MissionManager:
     """
-    Verwaltet den Zustand einer EINZELNEN, bereits geladenen Mission für eine Episode.
+    Manages the state of a single, already-loaded mission for an episode.
     """
     def __init__(self, trajectory_df: pd.DataFrame):
         self.waypoints = trajectory_df.to_dict('records')
@@ -75,8 +75,8 @@ class MissionManager:
 
 def plot_mission_results(results_df: pd.DataFrame):
     """
-    Visualisiert die Ergebnisse eines Simulationslaufs aus einer benchmark_results.csv.
-    Erstellt ein Fenster mit zwei Subplots: 3D-Trajektorie und Geschwindigkeits-Time-Series.
+    Visualizes the results of a simulation run from a benchmark_results.csv.
+    Creates a window with two subplots: 3D trajectory and velocity time-series.
     """
     # Helper to convert string representations of lists to numpy arrays
     def parse_vector(s):
@@ -103,12 +103,12 @@ def plot_mission_results(results_df: pd.DataFrame):
     agent_pos_data = np.stack(results_df['agent_pos'].to_numpy())
     mission_goal_pos_data = np.stack(results_df['mission_goal_pos'].to_numpy())
 
-    # Plot Agent's actual path
+    # Plot agent's actual path
     ax1.plot(agent_pos_data[:, 0], agent_pos_data[:, 1], agent_pos_data[:, 2], color='blue', linestyle='-', label='Agent Path')
     ax1.scatter(agent_pos_data[0, 0], agent_pos_data[0, 1], agent_pos_data[0, 2], c='green', s=100, label='Start', depthshade=True)
     ax1.scatter(agent_pos_data[-1, 0], agent_pos_data[-1, 1], agent_pos_data[-1, 2], c='red', s=100, label='End', depthshade=True)
 
-    # Plot Mission Goal Waypoints
+    # Plot mission goal waypoints
     # Find unique waypoints to avoid overplotting
     unique_goals, indices = np.unique(mission_goal_pos_data, axis=0, return_index=True)
     unique_goals = unique_goals[np.isfinite(unique_goals).all(axis=1)] # Filter out NaN goals
@@ -125,12 +125,12 @@ def plot_mission_results(results_df: pd.DataFrame):
     agent_vel_data = np.stack(results_df['agent_vel_c'].to_numpy())
     command_vel_data = np.stack(results_df['command_vel_c'].to_numpy())
 
-    # Agent Velocity
+    # Agent velocity
     ax2.plot(time_axis, agent_vel_data[:, 0], color='r', linestyle='-', label='Agent Vel X')
     ax2.plot(time_axis, agent_vel_data[:, 1], color='g', linestyle='-', label='Agent Vel Y')
     ax2.plot(time_axis, agent_vel_data[:, 2], color='b', linestyle='-', label='Agent Vel Z')
 
-    # Commanded Velocity
+    # Commanded velocity
     ax2.plot(time_axis, command_vel_data[:, 0], color='r', linestyle='--', alpha=0.7, label='Command Vel X')
     ax2.plot(time_axis, command_vel_data[:, 1], color='g', linestyle='--', alpha=0.7, label='Command Vel Y')
     ax2.plot(time_axis, command_vel_data[:, 2], color='b', linestyle='--', alpha=0.7, label='Command Vel Z')
@@ -140,36 +140,36 @@ def plot_mission_results(results_df: pd.DataFrame):
     ax2.set_title("Velocity Profile")
     ax2.legend()
     ax2.grid(True)
-    ax2.axhline(0, color='black', linewidth=0.5) # Nulllinie
+    ax2.axhline(0, color='black', linewidth=0.5) # zero line
 
-    plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # Passt Layout an den Haupttitel an
+    plt.tight_layout(rect=[0, 0.03, 1, 0.95]) # adjust layout for the main title
     plt.show(block=False)
     plt.pause(0.1)
 
 # Dieser Block wird nur ausgeführt, wenn mission_manager.py direkt gestartet wird
 if __name__ == '__main__':
-    print("--- Starte MissionManager im Visualisierungs-Modus ---")
+    print("--- Starting MissionManager in visualization mode ---")
     
-    # --- 1. Lade eine Benchmark-Ergebnisdatei ---
+    # --- 1. Load a benchmark results file ---
     try:
-        # Pfad zur Beispieldatei (passen Sie dies bei Bedarf an)
+        # Path to example file (adjust if necessary)
         script_dir = os.path.dirname(__file__)
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
-        # Beispiel: Lade die Ergebnisse für die 'Position_Square' Mission aus dem INDI-Benchmark
+        # Example: load results for the 'Position_Square' mission from the INDI benchmark
         results_path = os.path.join(project_root, 'data', 'INDI', 'Position_Square', 'benchmark_results.csv')
         
         if not os.path.exists(results_path):
-            raise FileNotFoundError(f"Ergebnisdatei nicht gefunden: {results_path}\nFühren Sie zuerst einen Benchmark-Lauf durch.")
+            raise FileNotFoundError(f"Results file not found: {results_path}\nRun a benchmark first.")
 
-        print(f"Lade Ergebnisdatei: {results_path}")
+        print(f"Loading results file: {results_path}")
         results_df = pd.read_csv(results_path)
 
     except FileNotFoundError as e:
-        print(f"\nFehler: {e}")
+        print(f"\nError: {e}")
         exit()
 
-    # --- 2. Visualisiere die Ergebnisse ---
+    # --- 2. Visualize the results ---
     plot_mission_results(results_df)
 
-    print("\nTest-Skript beendet. Schließen Sie das Plot-Fenster, um das Programm zu beenden.")
-    plt.show() # Hält das Skript an, damit der Plot sichtbar bleibt
+    print("\nTest script finished. Close the plot window to exit.")
+    plt.show() # Pause the script so the plot window stays open

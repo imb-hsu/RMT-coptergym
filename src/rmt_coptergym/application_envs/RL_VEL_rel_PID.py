@@ -5,61 +5,61 @@ from rmt_coptergym.base_envs.RMT_RL_Env import RMT_RL_Env
 
 class PID_VEL_Env(RMT_RL_Env):
     """
-    Velocity Control Environment für X8 Koaxial-Copter.
-    
-    Architektur:
-    - Coupled PID: P, I und D Terme koppeln intern (z.B. Vel * Yaw) via geometrisches Mittel.
-    - Root Rewards: 1 - sqrt(err/scale) für steile Gradienten nahe 0.
-    - Execution Quality: Constraints (Eff, Act, Smooth) bilden einen multiplikativen Faktor.
+    Velocity control environment for X8 coaxial copters.
+
+    Architecture:
+    - Coupled PID: P, I and D terms are internally coupled (e.g. Vel * Yaw) via geometric mean.
+    - Root Rewards: 1 - sqrt(err/scale) for steep gradients near zero.
+    - Execution Quality: Constraints (Eff, Act, Smooth) form a multiplicative factor.
     """
 
     def __init__(self, 
                 reward_weights: Dict[str, Any] = None,
                 **kwargs):
         
-        # --- 1. Gewichte (Prioritäten) ---
-        # Die PID-Gewichte (w_p, w_i, w_d) sollten in Summe ca. 1.0 ergeben.
+        # --- 1. Weights (priorities) ---
+        # The PID weights (w_p, w_i, w_d) should sum to about 1.0.
         default_weights = {
             "w_p": 4,#0.75,  # P-Term (Velocity & Yaw)
-            "w_i": 1,#0.2,  # I-Term (Integral & Yaw) - Hoch gegen Drift
-            "w_d": 0.5,#0.05,  # D-Term (Accel & Omega) - Gegen Schwingungen
+            "w_i": 1,#0.2,  # I-term (integral & yaw) - robust against drift
+            "w_d": 0.5,#0.05,  # D-term (accel & omega) - counters oscillations
             
-            # Multiplikator-Skalierung (optional, meist 1.0)
+            # Multiplier scaling (optional, usually 1.0)
             "scale_smooth": 1.0,
             "w_pid": 2,
             "comfort_zone": 1.0,
             "paired_efficiency": 1.0,
             "balance": 0.25, #0.5,
-            "smoothness": 0.1 # Standardmäßig ist smoothness unwichtig
+            "smoothness": 0.1 # By default, smoothness is not critical
         }
         if reward_weights is not None:
             default_weights.update(reward_weights)
         self.reward_weights = default_weights
 
-        # --- 2. Motor-Paare (X8 Schema) ---
+        # --- 2. Motor pairs (X8 schema) ---
         # Mapping: U1/L6, U2/L5, U3/L8, U4/L7
         self.motor_pairs = np.array([[0, 5], [1, 4], [2, 7], [3, 6]], dtype=np.int32)
 
         super().__init__(**kwargs)
         
         # --- 3. Critical Fixes ---
-        # Zeitliche Auflösung für Integral berechnen
+        # Compute the time resolution for the integral.
         self.dt = self.timestep * self.frame_skip
 
         # Integral State
         self.vel_integral_error = np.zeros(3)
         self.vel_integral_limit = 2.5 # m/s (Passend zur Scale 'int')
 
-        # --- 4. Physikalische Skalen (Bounds) ---
+        # --- 4. Physical scales (bounds) ---
         # Defines where the reward hits 0 (or minimum floor).
-        # Diese Werte sind physikalisch greifbar (Meter, Rad/s, etc.)
+        # These values are physically meaningful (meters, rad/s, etc.)
         self.scales = {
-            'vel': 2.0,             # 0 Punkte ab 2.0 m/s Fehler
-            'acc': 10.0,            # 0 Punkte ab 10 m/s^2 (~1G)
-            'int': 0.5,             # 0 Punkte ab 2.0 m/s Integral-Fehler
-            'yaw': np.deg2rad(45),  # 0 Punkte ab 45 Grad Yaw-Fehler
-            'omega': 6.0,           # 0 Punkte ab 6 rad/s Drehrate
-            'eff_tol': 200.0        # 0 Punkte ab 150 rad/s Motor-Differenz
+            'vel': 2.0,             # 0 points at 2.0 m/s error
+            'acc': 10.0,            # 0 points at 10 m/s^2 (~1G)
+            'int': 0.5,             # 0 points at 0.5 m/s integral error
+            'yaw': np.deg2rad(45),  # 0 points at 45 degree yaw error
+            'omega': 6.0,           # 0 points at 6 rad/s rotation rate
+            'eff_tol': 200.0        # 0 points at 150 rad/s motor difference
         }
 
     def reset(self, **kwargs):
@@ -70,20 +70,19 @@ class PID_VEL_Env(RMT_RL_Env):
 
     def build_state_obs_space(self) -> spaces.Dict:
         """
-        Definiert nur die dynamischen State-Infos.
-        Statische Infos (current_vel, etc.) kommen aus Base-Obs.
+        Defines only the dynamic state information.
+        Static info such as current_vel comes from the base observation.
         """
         return spaces.Dict({
             "vel_error":    spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float32),
             "vel_integral": spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float32),
             "rpy_error":    spaces.Box(low=-1.0, high=1.0, shape=(3,), dtype=np.float32),
-            # 'current_accel' ist optional hier, da oft in Base enthalten, 
-            # aber für Konsistenz lassen wir es oft weg oder fügen es hinzu, 
-            # wenn der Agent explizit Accel minimieren soll.
+            # 'current_accel' is optional here because it is often included in the base obs,
+            # but we keep it or add it for consistency when the agent explicitly needs accel info.
         })
 
     def get_state_observation(self) -> dict:
-        # Integral normalisieren (-1..1)
+        # Normalize integral (-1..1)
         norm_integral = np.clip(self.vel_integral_error / self.vel_integral_limit, -1.0, 1.0)
         
         return {
@@ -117,8 +116,8 @@ class PID_VEL_Env(RMT_RL_Env):
 
     def _calc_root_reward(self, error_val, scale, power=0.5, min_reward=0.0):
         """
-        Berechnet 1 - (abs(error)/scale)^power.
-        Skaliert das Ergebnis auf [min_reward, 1.0], um Null-Multiplikation zu verhindern.
+        Calculates 1 - (abs(error)/scale)^power.
+        Scales the result to [min_reward, 1.0] to avoid zero multiplication.
         """
         norm_err = np.abs(error_val) / scale
         norm_err = np.clip(norm_err, 0.0, 1.0)
@@ -135,17 +134,17 @@ class PID_VEL_Env(RMT_RL_Env):
         dt = self.dt
         w = self.reward_weights
         
-        # Global Floor für Constraints (damit Quality Score nicht 0 wird)
+        # Global floor for constraints (so quality score never becomes 0)
         CONSTRAINT_FLOOR = 0.1
 
         # 1. Integral Update (With Leaking for RL stability)
         self.vel_integral_error = 0.999 * self.vel_integral_error + self.error.vel_c * dt
         self.vel_integral_error = np.clip(self.vel_integral_error, -self.vel_integral_limit, self.vel_integral_limit)
 
-        # --- A. PERFORMANCE (PID mit geometrischer Kopplung) ---
+        # --- A. PERFORMANCE (PID with geometric coupling) ---
         
-        # P-Term: Kopplung von Velocity (Mean) und Yaw
-        # Wir nutzen power=0.5 (Wurzel) für steile Gradienten bei kleinen Fehlern.
+        # P-Term: coupling of velocity (mean) and yaw
+        # Use power=0.5 (square root) for steep gradients at small errors.
         #r_vel_vec = self._calc_root_reward(self.error.vel_c, self.scales['vel'], power=0.5)
         r_vel_vec = self._calc_root_reward(self.normalized_dict['error_vel'],1.0, power=0.5)
         r_vel = np.mean(r_vel_vec)
@@ -153,18 +152,18 @@ class PID_VEL_Env(RMT_RL_Env):
         #r_yaw = self._calc_root_reward(self.error.rpy_rad[2], self.scales['yaw'], power=0.5)
         r_yaw = self._calc_root_reward(self.normalized_dict['error_rpy'][2],1.0, power=0.5)
         
-        # Kopplung: sqrt(Vel * Yaw). Wenn Orientierung falsch ist, ist P schlecht.
+        # Coupling: sqrt(Vel * Yaw). If orientation is wrong, P is penalized.
         term_p = np.sqrt(r_vel * r_yaw + 1e-6)
 
-        # I-Term: Kopplung von Integral und Yaw
-        # Verhindert Windup-Belohnung bei falscher Ausrichtung.
+        # I-Term: coupling of integral and yaw
+        # Prevents windup reward when orientation is incorrect.
         r_int_vec = self._calc_root_reward(self.vel_integral_error, self.scales['int'], power=0.5)
         r_int = np.mean(r_int_vec)
         
         term_i = np.sqrt(r_int * r_yaw + 1e-6)
 
-        # D-Term: Kopplung von Accel (Ruhe) und Omega (Drehrate)
-        # Accel: Wir nutzen normalized dict (0..1) und nehmen an 1.0 ist Max-Accel (schlecht).
+        # D-Term: coupling of accel (stability) and omega (rotation rate)
+        # Accel: use normalized dict (0..1) and assume 1.0 is max accel (bad).
         r_acc_vec = self._calc_root_reward(self.normalized_dict['accel'], 1.0, power=0.5)
         r_acc = np.mean(r_acc_vec)
         
@@ -175,27 +174,27 @@ class PID_VEL_Env(RMT_RL_Env):
         
         term_d = np.sqrt(r_acc * r_omega + 1e-6)
 
-        # Basis Performance Score (Additiv)
+        # Base performance score (additive)
         #pid_score = (w['w_p'] * term_p) + (w['w_i'] * term_i) + (w['w_d'] * term_d)
         pid_score = np.cbrt(term_p**w['w_p']) * (term_i**w['w_i']) * (term_d**w['w_d'])
 
 
         # --- B. EXECUTION QUALITY (Constraints) ---
 
-        # 1. Efficiency (X8 Paare)
+        # 1. Efficiency (X8 pairs)
         cmds = self.action.cmd
         vals_a = cmds[self.motor_pairs[:, 0]]
         vals_b = cmds[self.motor_pairs[:, 1]]
         diff_rads = np.abs(vals_a - vals_b)
         
-        # Toleranz 150 rad/s. Floor 0.25.
+        # Tolerance 150 rad/s. Floor 0.25.
         r_eff_vec = self._calc_root_reward(diff_rads, self.scales['eff_tol'], power=0.5, min_reward=CONSTRAINT_FLOOR)
         r_eff = np.mean(r_eff_vec)
 
         # 2. Activity (Trapezoid)
         mean_cmd_norm = np.mean((cmds - self.limits.motor.min) / self.limits.motor.range)
         
-        # Komfortzone 30% bis 80%. Ränder fallen auf CONSTRAINT_FLOOR (nicht 0!).
+        # Comfort zone 30% to 80%. Edges fall to CONSTRAINT_FLOOR (not 0!).
         xp = [0.0, 0.1, 0.25, 0.75, 1.0]
         fp = [0.0, CONSTRAINT_FLOOR/2, 1.0, 1.0, CONSTRAINT_FLOOR]
         r_act = np.interp(mean_cmd_norm, xp, fp)
@@ -203,7 +202,7 @@ class PID_VEL_Env(RMT_RL_Env):
         # 3. Smoothness (Exponential Penalty)
         action_mag = np.mean(np.abs(self.action.box))
         r_smooth_raw = np.exp(-2.0 * action_mag * w.get('scale_smooth', 1.0))
-        # Floor anwenden
+        # Apply floor
         r_smooth = np.maximum(r_smooth_raw, CONSTRAINT_FLOOR)
 
         balance_error = np.mean(np.square(self.action.cmd/self.limits.motor.range))
@@ -212,15 +211,15 @@ class PID_VEL_Env(RMT_RL_Env):
 
         # --- C. FINAL COMBINATION ---
 
-        # Qualitäts-Score als Geometrisches Mittel der 3 Constraints
-        # Dies erhält die Magnitude (0.8 * 0.8 * 0.8 -> 0.8) und verhindert zu starke Reduktion.
+        # Quality score as the geometric mean of the 3 constraints
+        # This preserves magnitude (0.8 * 0.8 * 0.8 -> 0.8) and prevents too strong reduction.
         quality_score = np.cbrt(r_eff**w['paired_efficiency']  * r_smooth**w['smoothness'] * r_balance**w['balance'])
         
-        # Final: PID-Leistung * Ausführungs-Qualität
+        # Final: PID performance * execution quality
         final_reward = pid_score**(w['w_pid']) * quality_score * r_act**w['comfort_zone']
 
         # --- Logging ---
-        # Wichtig: w=0.0 für multiplikative/Info Terme setzen, um Plotter-Crash zu vermeiden
+        # Important: set w=0.0 for multiplicative/info terms to avoid plotter crash
         self.reward.terms['Term_P'] = {'r': term_p,  'w': w['w_p'], 'val': term_p * w['w_p']}
         self.reward.terms['Term_I'] = {'r': term_i,  'w': w['w_i'], 'val': term_i * w['w_i']}
         self.reward.terms['Term_D'] = {'r': term_d,  'w': w['w_d'], 'val': term_d * w['w_d']}

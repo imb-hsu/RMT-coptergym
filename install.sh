@@ -25,7 +25,7 @@ conda init bash > /dev/null 2>&1 || true
 conda init zsh > /dev/null 2>&1 || true
 
 # Make the 'conda' shell function available to this script.
-eval "$(conda shell.bash hook)"
+eval "$(conda shell.bash hook)"c
 
 # --- Conda Environment Creation ---
 # Check if the environment already exists.
@@ -66,7 +66,41 @@ conda install -c conda-forge make -y
 # Re-enable 'set -u' for the rest of the script
 set -u
 
-echo "Installing all Python packages via pip from requirements.txt..."
+echo "Checking System for GPU / CUDA..."
+if command -v nvidia-smi &> /dev/null
+then
+    # get version
+    CUDA_VERSION=$(nvidia-smi | grep -Po 'CUDA Version: \K[0-9.]+')
+    echo "Detected CUDA Version: $CUDA_VERSION"
+
+    # get major
+    CUDA_MAJOR=$(echo $CUDA_VERSION | cut -d. -f1)
+
+    if [ "$CUDA_MAJOR" -ge 12 ]; then
+        # for CUDA 12.x (auch 12.4) is cu121 recommended
+        TORCH_INDEX="https://download.pytorch.org/whl/cu121"
+    elif [ "$CUDA_MAJOR" -eq 11 ]; then
+        # for older Cluster with CUDA 11.x
+        TORCH_INDEX="https://download.pytorch.org/whl/cu118"
+    else
+        echo "CUDA Version $CUDA_VERSION is quite old. Falling back to default torch."
+        TORCH_INDEX=""
+    fi
+else
+    echo "No NVIDIA GPU detected (nvidia-smi not found). Installing CPU version."
+    TORCH_INDEX="https://download.pytorch.org/whl/cpu"
+fi
+
+echo "Installing PyTorch..."
+if [ -z "$TORCH_INDEX" ]; then
+    pip install torch torchvision torchaudio
+else
+    pip install torch torchvision torchaudio --index-url "$TORCH_INDEX"
+fi
+
+echo "Installing all remaining Python packages via pip from requirements.txt..."
+# manual torch isntallation depending on nvidia gpu...
+pip install torch --index-url https://download.pytorch.org/whl/cu121
 pip install -r requirements.txt || { echo "ERROR: Failed to install packages from requirements.txt"; exit 1; }
 
 echo "Installing the local RMT environment package in editable mode..."

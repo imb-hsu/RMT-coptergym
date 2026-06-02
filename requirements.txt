@@ -2,6 +2,7 @@
 # Contains all Python dependencies for the project
 
 # Core dependencies for RL
+torch
 stable-baselines3[extra]>=2.2.0
 sb3-contrib>=2.2.0
 

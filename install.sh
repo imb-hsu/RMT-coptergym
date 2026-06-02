@@ -142,7 +142,7 @@ if [[ "$install_vsc" == "j" || "$install_vsc" == "ja" || "$install_vsc" == "y" |
         ms-toolsai.jupyter-renderers        # probably installed with jupyter extension 
         ms-vscode.cpptools-extension-pack   # for C/C++ support
         GitHub.vscode-pull-request-github   # for Pull Requests, Issues, etc.
-        eamodio.gitlens                     # for advanced Git history and blame information
+        #eamodio.gitlens                     # for advanced Git history and blame information
         repreng.csv                         # tabular view for csv with colour code
     )
 

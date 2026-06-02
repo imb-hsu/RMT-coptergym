@@ -122,9 +122,7 @@ def run_indi_benchmark(output_base_dir: str, eval_mission_pool: list[pd.DataFram
 
             print(f"    -> Gespeichert in: {mission_output_dir}")
 
-
-if __name__ == '__main__':
-    # Das Skript geht davon aus, dass es im `scripts`-Ordner liegt.
+def main():
     try:
         project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     except NameError:
@@ -187,3 +185,6 @@ if __name__ == '__main__':
         eval_anomaly_pool=eval_anomaly_pool_representative,
         env_kwargs_base=env_kwargs_base
     )
+
+if __name__ == '__main__':
+    main()
